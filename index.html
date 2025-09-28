@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -8,12 +8,13 @@
     :root{--bg:#0f172a;--panel:#111827;--ink:#e5e7eb;--muted:#94a3b8;--line:#1f2937;--ok:#16a34a;--bad:#dc2626;--neu:#cbd5e1}
     html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
     .wrap{max-width:980px;margin:auto;padding:22px 14px}
-    h1{font-size:26px;margin:0 0 12px}
-    h2{font-size:18px;margin:0 0 8px}
+    h1{text-align:center;font-size:34px;margin:0 0 12px}
+    h2{text-align:center;font-size:18px;margin:0 0 8px}
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
     .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
     .span-12{grid-column:span 12}
     .span-6{grid-column:span 6}
+    .span-4{grid-column:span 4}
     label{display:block;font-size:13px;color:var(--muted);margin:8px 0 6px}
     input{width:100%;box-sizing:border-box;background:#0b1220;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
     table{width:100%;border-collapse:collapse;margin-top:8px}
@@ -30,13 +31,13 @@
     .hi:hover::after{content:attr(data-tip);position:absolute;left:50%;transform:translateX(-50%);bottom:135%;max-width:520px;min-width:280px;line-height:1.45;background:#0b1220;color:#e5e7eb;border:1px solid #1f2937;padding:10px 12px;border-radius:10px;white-space:normal;z-index:5;box-shadow:0 10px 28px rgba(0,0,0,.45)}
     .hi:hover::before{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:124%;border:7px solid transparent;border-top-color:#1f2937}
 
-    @media (max-width:900px){.span-6{grid-column:span 12}}
+    @media (max-width:900px){.span-6,.span-4{grid-column:span 12}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Comparador de neto disponible</h1>
-
+    <h1>CASO PRÁCTICO</h1>
+    <h2>- Compra de vehículos (particular vs flex) -</h2>
 
     <div class="grid">
       <!-- 1. Salario e IRPF -->
@@ -45,11 +46,12 @@
         <div class="grid">
           <div class="span-6">
             <label>Retribución fija bruta anual (€)</label>
-            <input id="B" type="number" value="40000" />
+            <input id="B" type="text" value="40000 €" data-type="eur" />
+            <div style="color:#9ca3af;font-size:12px;margin-top:4px">Admite 40.000 · 40,000 · 40000</div>
           </div>
           <div class="span-6">
             <label>Tipo marginal IRPF (%)</label>
-            <input id="t" type="number" step="0.1" value="25" />
+            <input id="t" type="text" value="25 %" data-type="pct" />
           </div>
         </div>
       </div>
@@ -58,8 +60,8 @@
       <div class="card span-6">
         <h2>Compra por su cuenta</h2>
         <label>Coste mensual estimado del coche (€)</label>
-        <input id="costeCompraMensual" type="number" value="590" />
-        <p class="kpi" id="kpiCompra">—</p>
+        <input id="costeCompraMensual" type="text" value="590 €" data-type="eur" />
+        <p class="kpi" id="kpiCompra">&mdash;</p>
         <table><tbody id="tablaCompra"></tbody></table>
       </div>
 
@@ -67,22 +69,22 @@
       <div class="card span-6">
         <h2>Renting vía retribución flexible</h2>
         <label>Cuota renting mensual (€)</label>
-        <input id="Cmensual" type="number" value="620" />
+        <input id="Cmensual" type="text" value="620 €" data-type="eur" />
         <label>% de uso privativo</label>
-        <input id="p" type="number" value="40" />
+        <input id="p" type="text" value="40 %" data-type="pct" />
         <label>Valor de mercado del vehículo (€)</label>
-        <input id="V" type="number" value="30000" />
+        <input id="V" type="text" value="35400 €" data-type="eur" />
         <div class="grid" style="margin-top:6px">
           <div class="span-6">
             <label>Tipo IRPF (flex) (%) <span class="hi" data-tip="Puedes usar un tipo más bajo si el sacrificio reduce tu marginal efectivo. Por defecto replica el tipo marginal general.">i</span></label>
-            <input id="tFlex" type="number" step="0.1" value="25" />
+            <input id="tFlex" type="text" value="25 %" data-type="pct" />
           </div>
           <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
             <input id="sameAsMarginal" type="checkbox" checked>
             <label for="sameAsMarginal" style="margin:0;color:#cbd5e1">Igual que el tipo marginal</label>
           </div>
         </div>
-        <p class="kpi" id="kpiRenting">—</p>
+        <p class="kpi" id="kpiRenting">&mdash;</p>
         <table><tbody id="tablaRenting"></tbody></table>
       </div>
 
@@ -92,25 +94,25 @@
         <div class="grid">
           <div class="span-4">
             <label>Neto compra</label>
-            <p class="kpi" id="netCompra">—</p>
+            <p class="kpi" id="netCompra">&mdash;</p>
           </div>
           <div class="span-4">
             <label>Neto renting</label>
-            <p class="kpi" id="netRenting">—</p>
+            <p class="kpi" id="netRenting">&mdash;</p>
           </div>
           <div class="span-4">
             <label>Diferencia (renting − compra)</label>
-            <p class="result" id="difAbs">—</p>
-            <span id="difPct" class="pill">—</span>
+            <p class="result" id="difAbs">&mdash;</p>
+            <span id="difPct" class="pill">&mdash;</span>
           </div>
         </div>
       </div>
 
-      <!-- 5. Tests automáticos (colapsable) -->
+      <!-- 5. Tests rápidos -->
       <div class="card span-12">
         <details>
-          <summary>Tests automáticos</summary>
-          <div id="testsOut" style="margin-top:8px;font-size:14px;color:#cbd5e1"></div>
+          <summary>Tests rápidos</summary>
+          <div id="testsOut" style="color:#cbd5e1;font-size:13px"></div>
         </details>
       </div>
 
@@ -118,12 +120,51 @@
   </div>
 
 <script>
-// Formateo
-const fmtEur = v => new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(v);
+// ================= Helpers de formato/parseo =================
+const fmtEur = v => new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
+const fmtPct = v => new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(v) + ' %';
+
+function parseLocaleNumber(input){
+  if(typeof input !== 'string') input = String(input ?? '');
+  let s = input.trim();
+  if(!s) return 0;
+  const neg = /^-/.test(s) ? -1 : 1;
+  s = s.replace(/[^0-9.,]/g,''); // deja solo dígitos y separadores
+  if(!s) return 0;
+  const lastComma = s.lastIndexOf(',');
+  const lastDot = s.lastIndexOf('.');
+  let decPos = Math.max(lastComma, lastDot);
+  if(decPos >= 0){
+    const intPart = s.slice(0, decPos).replace(/[.,]/g,'');
+    const fracPart = s.slice(decPos+1).replace(/[.,]/g,'');
+    return neg * parseFloat((intPart || '0') + '.' + (fracPart || '0'));
+  }
+  // sin separadores: quita posibles puntos/comedas residuales por si acaso
+  return neg * parseFloat(s.replace(/[.,]/g,''));
+}
 
 function getNum(id){
-  const v = Number(document.getElementById(id).value);
-  return isFinite(v)?v:0;
+  const el = document.getElementById(id);
+  return parseLocaleNumber(el.value);
+}
+
+function formatInput(el){
+  const t = el.dataset.type;
+  const num = getNum(el.id);
+  if(t==='eur') el.value = fmtEur(num);
+  else if(t==='pct') el.value = fmtPct(num);
+  else el.value = new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(num);
+}
+
+function unformatOnFocus(el){
+  // muestra un número simple para editar cómodamente
+  const val = getNum(el.id);
+  // para % mostramos con coma decimal y sin agrupadores
+  if(el.dataset.type==='pct'){
+    el.value = String(val).replace('.',',');
+  } else {
+    el.value = String(val); // sin símbolos ni agrupadores
+  }
 }
 
 function paintResult(elAbs, elPct, dif){
@@ -134,9 +175,10 @@ function paintResult(elAbs, elPct, dif){
   else { elAbs.classList.add('neu'); elPct.classList.add('neu'); }
 }
 
+// ================= Cálculo principal =================
 function calc(){
   const B = getNum('B');
-  const t = getNum('t')/100; // tipo marginal general (compra)
+  const t = getNum('t')/100; // tipo marginal general
   const costeCompraMensual = getNum('costeCompraMensual');
   const Cmens = getNum('Cmensual');
   const p = getNum('p')/100;
@@ -172,7 +214,7 @@ function calc(){
     <tr><td class="hint">Especie <span class="hi" data-tip="Valoración fiscal anual: 20% × valor de mercado del vehículo × % de uso privativo. No se cobra en metálico, pero tributa.">i</span></td><td>${fmtEur(especie)}</td></tr>
     <tr><td class="hint">Base IRPF <span class="hi" data-tip="La base sobre la que se aplica el IRPF: bruto reducido + especie. La especie se suma como si fuera salario.">i</span></td><td>${fmtEur(baseIRPF)}</td></tr>
     <tr><td class="hint">IRPF (flex) <span class="hi" data-tip="Tipo aplicado en el escenario de flex. Puedes reducirlo si el sacrificio salarial te baja el marginal efectivo.">i</span></td><td>− ${fmtEur(irpf)}</td></tr>
-    <tr><td class="hint"><strong>Neto disponible</strong> <span class="hi" data-tip="Bruto reducido − IRPF. No se suma la especie porque no es dinero que recibas.">i</span></td><td><strong>${fmtEur(netoRenting)}</strong></td></tr>
+    <tr><td class="hint"><strong>Neto disponible</strong> <span class="hi" data-tip="Bruto reducido − IRPF. No se suma la especie porque no es dinero que recibes.">i</span></td><td><strong>${fmtEur(netoRenting)}</strong></td></tr>
   `;
 
   // Resultado final y colores
@@ -183,62 +225,51 @@ function calc(){
   const elPct = document.getElementById('difPct');
   elAbs.textContent = (dif>=0?'+':'') + fmtEur(dif);
   const pct = netoCompra ? (dif/netoCompra*100) : 0;
-  elPct.textContent = (pct>=0?'+':'') + pct.toFixed(2) + '%';
+  elPct.textContent = (pct>=0?'+':'') + new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(pct) + '%';
   paintResult(elAbs, elPct, dif);
 }
 
-// Listeners para recálculo en tiempo real
-['B','t','costeCompraMensual','Cmensual','p','V','tFlex','sameAsMarginal'].forEach(id=>{
-  document.getElementById(id).addEventListener('input', calc);
+// ================= Eventos y tests =================
+const inputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex'];
+inputs.forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', calc);          // recalcula en tiempo real sin formatear
+  el.addEventListener('blur', ()=>{ formatInput(el); calc(); }); // formatea al salir
+  el.addEventListener('focus', ()=>{ unformatOnFocus(el); });    // quita símbolo al entrar
 });
 
-// Sincroniza tFlex con t cuando el checkbox está activo
+// checkbox de sincronización
 const same = document.getElementById('sameAsMarginal');
 const tInput = document.getElementById('t');
 const tFlexInput = document.getElementById('tFlex');
+function syncTFlex(){ if(same.checked){ tFlexInput.value = tInput.value; } }
+same.addEventListener('change', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput);} calc(); });
+tInput.addEventListener('input', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; calc(); } });
 
-function syncTFlex(){
-  if(same.checked){
-    tFlexInput.value = tInput.value;
-    tFlexInput.setAttribute('disabled','disabled');
-  } else {
-    tFlexInput.removeAttribute('disabled');
-  }
-}
-
-same.addEventListener('change', ()=>{ syncTFlex(); calc(); });
-tInput.addEventListener('input', ()=>{ if(same.checked){ syncTFlex(); calc(); } });
-
-// --- Tests automáticos ---
-function almostEqual(a,b,eps=0.6){ return Math.abs(a-b) <= eps; }
-function runTests(){
-  const out = [];
-
-  // Caso base: B=40k, t=25%, coste compra=590, C=620, p=40%, V=30000
-  const B=40000, t=0.25, Cmens=620, p=0.40, V=30000, coste=590, tFlex=0.25;
-  const netCompra = B*(1-t) - coste*12; // 30000 - 7080 = 22920
-  const Canual = Cmens*12; // 7440
-  const especie = 0.20*V*p; // 2400
-  const netFlex = (B-Canual) - tFlex*((B-Canual)+especie); // 23820
-  out.push(`Test 1 (base): compra=${fmtEur(netCompra)}, flex=${fmtEur(netFlex)} → ${(almostEqual(netCompra,22920)&&almostEqual(netFlex,23820))?'OK':'FALLO'}`);
-
-  // p=81% con mismo V
-  const p2 = 0.81; const especie2 = 0.20*V*p2; // 4860
-  const netFlex2 = (B-Canual) - tFlex*((B-Canual)+especie2); // 23205
-  out.push(`Test 2 (priv. 81%): flex=${fmtEur(netFlex2)} → ${almostEqual(netFlex2,23205)?'OK':'FALLO'}`);
-
-  // V=35400, p=40%
-  const V3=35400; const especie3=0.20*V3*p; // 2832
-  const netFlex3=(B-Canual)-tFlex*((B-Canual)+especie3); // 23712
-  out.push(`Test 3 (V=35.4k, p=40%): flex=${fmtEur(netFlex3)} → ${almostEqual(netFlex3,23712)?'OK':'FALLO'}`);
-
-  document.getElementById('testsOut').innerHTML = out.map(x=>`<div>${x}</div>`).join('');
-}
-
-// Init
-syncTFlex();
+// Valores iniciales: asegurar formato visible
+inputs.forEach(id=>formatInput(document.getElementById(id)));
 calc();
-runTests();
+
+// Tests rápidos (no bloquean la UI)
+function almostEqual(a,b,eps=0.6){ return Math.abs(a-b) <= eps; }
+(function runTests(){
+  const out=[];
+  // Test 1 base (B=40k, t=25%, C=620, p=40%, V=30k) → compra 22.920 | flex 23.820
+  {
+    const B=40000, t=0.25, C=620, p=0.40, V=35400, coste=590, tFlex=0.25;
+    const netCompra = B*(1-t) - coste*12;         // 22920
+    const Canual=C*12, especie=0.2*V*p;           // 7440, 2400
+    const netFlex = (B-Canual) - tFlex*((B-Canual)+especie); // 23820
+    out.push(`Test base → compra=${fmtEur(netCompra)} ${almostEqual(netCompra,22920)?'OK':'FALLO'} · flex=${fmtEur(netFlex)} ${almostEqual(netFlex,23820)?'OK':'FALLO'}`);
+  }
+  // Test 2 V=35.400, p=40% → especie=2.832
+  {
+    const V=35400, p=0.40; const especie=0.2*V*p; // 2832
+    out.push(`Test especie (V=35.4k, 40%) → ${fmtEur(especie)} ${almostEqual(especie,2832)?'OK':'FALLO'}`);
+  }
+  document.getElementById('testsOut').innerHTML = out.map(x=>`<div>${x}</div>`).join('');
+})();
 </script>
+<p style="color:#9ca3af;font-size:12px">Sergio Travieso 2025</p>
 </body>
 </html>
