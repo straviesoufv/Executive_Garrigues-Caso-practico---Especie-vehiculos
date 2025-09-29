@@ -6,19 +6,18 @@
   <title>Comparador de neto disponible: compra vs renting (flex)</title>
 
   <style>
-    /* ================== Identidad UFV (ajusta hex si lo necesitas) ================== */
+    /* ================== Identidad UFV ================== */
     :root{
-      /* Azules institucionales (aprox) */
-      --ufv-blue-900:#0a2a4a;   /* cabeceras/acentos fuertes */
+      --ufv-blue-900:#0a2a4a;
       --ufv-blue-800:#0c3563;
       --ufv-blue-700:#114a7a;
-      --ufv-blue-600:#165e95;   /* foco/borde activo */
-      --ufv-blue-100:#e9f1fb;   /* fondos suaves */
-      --ufv-ink:#0f1720;        /* texto principal */
-      --ufv-ink-muted:#4b5563;  /* texto secundario */
-      --panel:#ffffff;          /* tarjetas */
-      --bg:#f6f8fc;             /* fondo general claro */
-      --line:#e5e7eb;           /* líneas y bordes */
+      --ufv-blue-600:#165e95;
+      --ufv-blue-100:#e9f1fb;
+      --ufv-ink:#0f1720;
+      --ufv-ink-muted:#4b5563;
+      --panel:#ffffff;
+      --bg:#f6f8fc;
+      --line:#e5e7eb;
       --ok:#0f8a41;
       --bad:#c21f2f;
       --neu:#6b7280;
@@ -26,7 +25,6 @@
       --radius:14px;
     }
 
-    /* Tipografías: Arial base, Times New Roman para titulares, Rockwell para numerales/KPIs si existe */
     html,body{
       margin:0; background:var(--bg); color:var(--ufv-ink);
       font-family: Arial, "Helvetica Neue", Helvetica, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
@@ -35,71 +33,49 @@
     .t-title{ font-family: "Times New Roman", Times, serif; letter-spacing:.2px }
     .t-numeral{ font-family: Rockwell, "Rockwell Std", "Segoe UI", "Arial Black", Arial, sans-serif }
 
-    .wrap{max-width:1040px;margin:auto;padding:22px 16px}
+    .wrap{max-width:1280px;margin:auto;padding:22px 16px}
 
-    /* ================== Header institucional ================== */
+    /* ================== Header ================== */
     .site-header{
       background:linear-gradient(0deg, var(--ufv-blue-800), var(--ufv-blue-900));
       color:#fff;
       box-shadow: var(--shadow);
     }
     .site-header .inner{
-      max-width:1040px;margin:0 auto;padding:14px 16px;
+      max-width:1280px;margin:0 auto;padding:14px 16px;
       display:flex;align-items:center;gap:16px
     }
-    .brand{
-      display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit
-    }
+    .brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit}
     .brand img{height:44px;width:auto;display:block}
     .brand-title{display:flex;flex-direction:column}
-    .brand-title h1{
-      margin:0;font-size:22px; font-weight:800
-    }
-    .brand-title span{
-      opacity:.9; font-size:13px
-    }
+    .brand-title h1{margin:0;font-size:22px;font-weight:800}
+    .brand-title span{opacity:.9;font-size:13px}
 
-    /* ================== Sección hero ================== */
-    .hero{
-      background:#fff; border-bottom:1px solid var(--line)
-    }
-    .hero .inner{
-      max-width:1040px;margin:0 auto;padding:18px 16px 10px 16px
-    }
-    .hero h2{
-      margin:0; font-size:26px; color:var(--ufv-blue-900)
-    }
-    .hero p{ margin:6px 0 0 0; color:#1f2937 }
+    /* ================== Hero ================== */
+    .hero{background:#fff;border-bottom:1px solid var(--line)}
+    .hero .inner{max-width:1280px;margin:0 auto;padding:18px 16px 10px}
+    .hero h2{margin:0;font-size:26px;color:var(--ufv-blue-900)}
+    .hero p{margin:6px 0 0;color:#1f2937}
 
     /* ================== Tarjetas y grid ================== */
     .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
-    .card{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      padding:14px;
-      box-shadow: var(--shadow);
-    }
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
     .span-12{grid-column:span 12}
     .span-6{grid-column:span 6}
     .span-4{grid-column:span 4}
 
-    h3{
-      margin:0 0 10px 0; font-size:18px; color:var(--ufv-blue-900)
-    }
-
+    h3{margin:0 0 10px;font-size:18px;color:var(--ufv-blue-900)}
     label{display:block;font-size:13px;color:var(--ufv-ink-muted);margin:8px 0 6px}
 
     input{
       width:100%;box-sizing:border-box;background:#fff;color:var(--ufv-ink);
       border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;
-      outline:none; transition:border .15s, box-shadow .15s
+      outline:none;transition:border .15s, box-shadow .15s
     }
     input:focus{
       border-color:var(--ufv-blue-600);
       box-shadow:0 0 0 3px color-mix(in srgb, var(--ufv-blue-600) 20%, transparent);
     }
-
     .helper{color:var(--ufv-ink-muted);font-size:12px;margin-top:4px}
 
     table{width:100%;border-collapse:collapse;margin-top:8px}
@@ -108,16 +84,12 @@
 
     .kpi{font-size:26px;font-weight:800;margin:8px 0}
     .kpi.t-numeral{letter-spacing:.2px}
-
-    .pill{
-      display:inline-block;border:1px solid #cbd5e1;border-radius:999px;
-      padding:2px 8px;font-size:12px;color:#334155;background:var(--ufv-blue-100)
-    }
+    .pill{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;font-size:12px;color:#334155;background:var(--ufv-blue-100)}
     .good{color:var(--ok)} .bad{color:var(--bad)} .neu{color:var(--neu)}
     .result{font-size:30px;font-weight:900;margin:6px 0}
     .muted{color:var(--ufv-ink-muted)}
 
-    /* Tooltips institucionales */
+    /* Tooltips */
     .hint{display:inline-flex;align-items:center;gap:6px}
     .hi{
       display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;
@@ -129,15 +101,21 @@
       background:#fff; color:#0f1720; border:1px solid var(--line);
       padding:10px 12px; border-radius:10px; white-space:normal; z-index:5; box-shadow:var(--shadow)
     }
-    .hi:hover::before{
-      content:""; position:absolute; left:50%; transform:translateX(-50%);
-      bottom:124%; border:7px solid transparent; border-top-color:var(--line)
+    .hi:hover::before{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:124%;border:7px solid transparent;border-top-color:var(--line)}
+
+    /* ================== LAYOUT LATERAL ================== */
+    .layout{
+      display:grid;grid-template-columns: 1fr 392px;gap:18px;align-items:start
+    }
+    .aside-sticky{position:sticky;top:16px}
+    /* En móvil/tablet, 1 columna */
+    @media (max-width:1024px){
+      .layout{grid-template-columns: 1fr}
+      .aside-sticky{position:static}
     }
 
     /* Footer */
     .site-footer{color:var(--ufv-ink-muted);font-size:12px;padding:18px 0 28px;text-align:center}
-
-    @media (max-width:900px){.span-6,.span-4{grid-column:span 12}}
   </style>
 </head>
 <body>
@@ -146,7 +124,8 @@
   <header class="site-header">
     <div class="inner">
       <a class="brand" href="#">
-        <img id="ufvLogo" src="./logo-UFV-blanco.png" alt="UFV">
+        <img id="ufvLogo" src="./logo-UFV-blanco.png" alt="UFV"
+             onerror="this.onerror=null; this.src='./logo-UFV.png';">
         <div class="brand-title">
           <h1 class="t-title">CASO PRÁCTICO</h1>
           <span>Comparador de neto disponible · compra vs renting (flex)</span>
@@ -165,82 +144,92 @@
 
   <!-- Contenido -->
   <div class="wrap">
-    <div class="grid">
-      <!-- 1. Salario e IRPF -->
-      <div class="card span-12">
-        <h3 class="t-title">Salario e impuestos</h3>
+    <!-- ===== LAYOUT LATERAL: MAIN + ASIDE ===== -->
+    <div class="layout">
+
+      <!-- MAIN: inputs y desgloses -->
+      <main>
         <div class="grid">
-          <div class="span-6">
-            <label>Retribución fija bruta anual (€)</label>
-            <input id="B" type="text" value="40000 €" data-type="eur" />
-            <div class="helper">Admite 40.000 · 40,000 · 40000</div>
+          <!-- 1. Salario e IRPF -->
+          <div class="card span-12">
+            <h3 class="t-title">Salario e impuestos</h3>
+            <div class="grid">
+              <div class="span-6">
+                <label>Retribución fija bruta anual (€)</label>
+                <input id="B" type="text" value="40000 €" data-type="eur" />
+                <div class="helper">Admite 40.000 · 40,000 · 40000</div>
+              </div>
+              <div class="span-6">
+                <label>Tipo marginal IRPF (%)</label>
+                <input id="t" type="text" value="25 %" data-type="pct" />
+              </div>
+            </div>
           </div>
-          <div class="span-6">
-            <label>Tipo marginal IRPF (%)</label>
-            <input id="t" type="text" value="25 %" data-type="pct" />
+
+          <!-- 2. Compra por su cuenta -->
+          <div class="card span-6">
+            <h3 class="t-title">Compra por su cuenta</h3>
+            <label>Coste mensual estimado del coche (€)</label>
+            <input id="costeCompraMensual" type="text" value="590 €" data-type="eur" />
+            <p class="kpi t-numeral" id="kpiCompra">&mdash;</p>
+            <table><tbody id="tablaCompra"></tbody></table>
+          </div>
+
+          <!-- 3. Renting vía flex -->
+          <div class="card span-6">
+            <h3 class="t-title">Renting vía retribución flexible</h3>
+            <label>Cuota renting mensual (€)</label>
+            <input id="Cmensual" type="text" value="620 €" data-type="eur" />
+            <label>% de uso privativo</label>
+            <input id="p" type="text" value="40 %" data-type="pct" />
+            <label>Valor de mercado del vehículo (€)</label>
+            <input id="V" type="text" value="35400 €" data-type="eur" />
+            <div class="grid" style="margin-top:6px">
+              <div class="span-6">
+                <label>Tipo IRPF (flex) (%) <span class="hi" data-tip="Puedes usar un tipo más bajo si el sacrificio reduce tu marginal efectivo. Por defecto replica el tipo marginal general.">i</span></label>
+                <input id="tFlex" type="text" value="25 %" data-type="pct" />
+              </div>
+              <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
+                <input id="sameAsMarginal" type="checkbox" checked>
+                <label for="sameAsMarginal" style="margin:0;">Igual que el tipo marginal</label>
+              </div>
+            </div>
+            <p class="kpi t-numeral" id="kpiRenting">&mdash;</p>
+            <table><tbody id="tablaRenting"></tbody></table>
+          </div>
+
+          <!-- 5. Tests rápidos -->
+          <div class="card span-12">
+            <details>
+              <summary>Tests rápidos</summary>
+              <div id="testsOut" class="muted" style="font-size:13px"></div>
+            </details>
           </div>
         </div>
-      </div>
+      </main>
 
-      <!-- 2. Compra por su cuenta -->
-      <div class="card span-6">
-        <h3 class="t-title">Compra por su cuenta</h3>
-        <label>Coste mensual estimado del coche (€)</label>
-        <input id="costeCompraMensual" type="text" value="590 €" data-type="eur" />
-        <p class="kpi t-numeral" id="kpiCompra">&mdash;</p>
-        <table><tbody id="tablaCompra"></tbody></table>
-      </div>
-
-      <!-- 3. Renting vía flex -->
-      <div class="card span-6">
-        <h3 class="t-title">Renting vía retribución flexible</h3>
-        <label>Cuota renting mensual (€)</label>
-        <input id="Cmensual" type="text" value="620 €" data-type="eur" />
-        <label>% de uso privativo</label>
-        <input id="p" type="text" value="40 %" data-type="pct" />
-        <label>Valor de mercado del vehículo (€)</label>
-        <input id="V" type="text" value="35400 €" data-type="eur" />
-        <div class="grid" style="margin-top:6px">
-          <div class="span-6">
-            <label>Tipo IRPF (flex) (%) <span class="hi" data-tip="Puedes usar un tipo más bajo si el sacrificio reduce tu marginal efectivo. Por defecto replica el tipo marginal general.">i</span></label>
-            <input id="tFlex" type="text" value="25 %" data-type="pct" />
-          </div>
-          <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
-            <input id="sameAsMarginal" type="checkbox" checked>
-            <label for="sameAsMarginal" style="margin:0;">Igual que el tipo marginal</label>
+      <!-- ASIDE: resultado fijo a la derecha -->
+      <aside class="aside-sticky">
+        <div class="card">
+          <h3 class="t-title">Resultado</h3>
+          <div class="grid">
+            <div class="span-12">
+              <label>Neto compra</label>
+              <p class="kpi t-numeral" id="netCompra">&mdash;</p>
+            </div>
+            <div class="span-12">
+              <label>Neto renting</label>
+              <p class="kpi t-numeral" id="netRenting">&mdash;</p>
+            </div>
+            <div class="span-12">
+              <label>Diferencia (renting − compra)</label>
+              <p class="result t-numeral" id="difAbs">&mdash;</p>
+              <span id="difPct" class="pill">&mdash;</span>
+            </div>
           </div>
         </div>
-        <p class="kpi t-numeral" id="kpiRenting">&mdash;</p>
-        <table><tbody id="tablaRenting"></tbody></table>
-      </div>
+      </aside>
 
-      <!-- 4. Resultado -->
-      <div class="card span-12">
-        <h3 class="t-title">Resultado</h3>
-        <div class="grid">
-          <div class="span-4">
-            <label>Neto compra</label>
-            <p class="kpi t-numeral" id="netCompra">&mdash;</p>
-          </div>
-          <div class="span-4">
-            <label>Neto renting</label>
-            <p class="kpi t-numeral" id="netRenting">&mdash;</p>
-          </div>
-          <div class="span-4">
-            <label>Diferencia (renting − compra)</label>
-            <p class="result t-numeral" id="difAbs">&mdash;</p>
-            <span id="difPct" class="pill">&mdash;</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 5. Tests rápidos -->
-      <div class="card span-12">
-        <details>
-          <summary>Tests rápidos</summary>
-          <div id="testsOut" class="muted" style="font-size:13px"></div>
-        </details>
-      </div>
     </div>
 
     <footer class="site-footer">
@@ -249,13 +238,7 @@
   </div>
 
 <script>
-/* ====== Logo: usar versión blanca si existe, si no caer al logo normal ====== */
-(function(){
-  const img = document.getElementById('ufvLogo');
-  img.onerror = () => { img.onerror = null; img.src = "/logo UFV.png"; };
-})();
-
-/* ================= Helpers de formato/parseo (idénticos a tu versión) ================= */
+/* Helpers formato/parseo */
 const fmtEur = v => new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
 const fmtPct = v => new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(v) + ' %';
 
@@ -276,9 +259,7 @@ function parseLocaleNumber(input){
   }
   return neg * parseFloat(s.replace(/[.,]/g,''));
 }
-
 function getNum(id){ return parseLocaleNumber(document.getElementById(id).value); }
-
 function formatInput(el){
   const t = el.dataset.type;
   const num = getNum(el.id);
@@ -286,13 +267,11 @@ function formatInput(el){
   else if(t==='pct') el.value = fmtPct(num);
   else el.value = new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(num);
 }
-
 function unformatOnFocus(el){
   const val = getNum(el.id);
   if(el.dataset.type==='pct'){ el.value = String(val).replace('.',','); }
   else { el.value = String(val); }
 }
-
 function paintResult(elAbs, elPct, dif){
   elAbs.classList.remove('good','bad','neu');
   elPct.classList.remove('good','bad','neu');
@@ -301,7 +280,7 @@ function paintResult(elAbs, elPct, dif){
   else { elAbs.classList.add('neu'); elPct.classList.add('neu'); }
 }
 
-/* ================= Cálculo principal (idéntico) ================= */
+/* Cálculo principal */
 function calc(){
   const B = getNum('B');
   const t = getNum('t')/100;
@@ -343,7 +322,7 @@ function calc(){
     <tr><td class="hint"><strong>Neto disponible</strong> <span class="hi" data-tip="Bruto reducido − IRPF. No se suma la especie porque no es dinero que recibes.">i</span></td><td><strong>${fmtEur(netoRenting)}</strong></td></tr>
   `;
 
-  // Resultado final
+  // Resultado final (sidebar)
   document.getElementById('netCompra').textContent = fmtEur(netoCompra);
   document.getElementById('netRenting').textContent = fmtEur(netoRenting);
   const dif = netoRenting - netoCompra;
@@ -355,7 +334,7 @@ function calc(){
   paintResult(elAbs, elPct, dif);
 }
 
-/* ================= Eventos y tests ================= */
+/* Eventos y tests */
 const inputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex'];
 inputs.forEach(id=>{
   const el = document.getElementById(id);
@@ -363,19 +342,15 @@ inputs.forEach(id=>{
   el.addEventListener('blur', ()=>{ formatInput(el); calc(); });
   el.addEventListener('focus', ()=>{ unformatOnFocus(el); });
 });
-
-// checkbox de sincronización
 const same = document.getElementById('sameAsMarginal');
 const tInput = document.getElementById('t');
 const tFlexInput = document.getElementById('tFlex');
 same.addEventListener('change', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput);} calc(); });
 tInput.addEventListener('input', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; calc(); } });
 
-// Valores iniciales
 inputs.forEach(id=>formatInput(document.getElementById(id)));
 calc();
 
-// Tests rápidos (informativos)
 function almostEqual(a,b,eps=0.6){ return Math.abs(a-b) <= eps; }
 (function runTests(){
   const out=[];
