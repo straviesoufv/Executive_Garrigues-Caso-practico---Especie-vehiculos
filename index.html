@@ -52,6 +52,16 @@
     @media (max-width:1024px){.layout{grid-template-columns:1fr}.aside-sticky{position:static}}
     .site-footer{color:var(--ufv-ink-muted);font-size:12px;padding:18px 0 28px;text-align:center}
     .table-compact td{padding:6px 8px}
+    /* Fila de resumen enfatizada */
+    .emph-row td{
+      font-weight: 800;
+      font-size: 16px;
+      background: #f1f5f9;      /* sutil */
+    }
+    .emph-row td:first-child{
+      letter-spacing: .2px;
+    }
+
   </style>
 </head>
 <body>
@@ -165,8 +175,14 @@
               <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
               <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
               <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
-              <tr><td><strong>Diferencia vs compra · Repercutido</strong></td><td style="text-align:right" id="dRep">—</td></tr>
-              <tr><td><strong>Diferencia vs compra · No repercutido</strong></td><td style="text-align:right" id="dNoRep">—</td></tr>
+              <tr class="emph-row">
+                <td>Diferencia vs compra · Repercutido</td>
+                <td style="text-align:right" id="dRep">—</td>
+              </tr>
+              <tr class="emph-row">
+                <td>Diferencia vs compra · No repercutido</td>
+                <td style="text-align:right" id="dNoRep">—</td>
+              </tr>
             </tbody>
           </table>
 
