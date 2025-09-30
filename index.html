@@ -14,10 +14,8 @@
       --line:#e5e7eb; --ok:#0f8a41; --bad:#c21f2f; --neu:#6b7280; --shadow:0 6px 18px rgba(10,42,74,.08);
       --radius:14px;
 
-      /* Escala de espacios */
+      /* Espacios y densidad */
       --space-1:6px; --space-2:10px; --space-3:14px; --space-4:18px; --space-5:24px; --space-6:32px;
-
-      /* Densidad por defecto: cómoda */
       --grid-gap: var(--space-3);
       --block-gap: var(--space-5);
       --control-gap: var(--space-3);
@@ -25,7 +23,6 @@
       --table-padding-x: 10px;
       --para-lh: 1.45;
     }
-    /* Modo compacto */
     body.compact {
       --grid-gap: 10px;
       --block-gap: var(--space-4);
@@ -33,7 +30,6 @@
       --table-padding-y: 8px;
       --table-padding-x: 8px;
     }
-
 
     html,body{
       margin:0; background:var(--bg); color:var(--ufv-ink);
@@ -84,6 +80,7 @@
     .span-12{grid-column:span 12}
     .span-6{grid-column:span 6}
     .span-4{grid-column:span 4}
+    .span-6.tight{padding:var(--space-3) var(--space-4);} /* tarjeta compacta */
 
     h3{margin:0 0 var(--space-3);font-size:18px;color:var(--ufv-blue-900)}
 
@@ -154,6 +151,16 @@
       .aside-sticky{position:static}
     }
 
+    /* Acordeón de tarjeta completa */
+    .card details{ border-top:none; padding-top:0; margin-top:0 }
+    .card summary{
+      margin:-6px -6px var(--space-2);
+      padding:8px 6px;
+      border-radius:10px;
+    }
+    .card summary:hover{ background:#f8fafc }
+
+
     /* Fila de resumen enfatizada */
     .emph-row td{ font-weight:800; font-size:16px; background:#f1f5f9; }
     .emph-row td:first-child{ letter-spacing:.2px; }
@@ -180,7 +187,10 @@
         <label class="vc-chip" title="Aumenta o reduce espacios y padding">
           <input id="toggleDensity" type="checkbox"> Densidad compacta
         </label>
+        <button id="expandAll" class="vc-chip" type="button" title="Mostrar todos los escenarios">Expandir todo</button>
+        <button id="collapseAll" class="vc-chip" type="button" title="Ocultar todos los escenarios">Contraer todo</button>
       </div>
+
     </div>
   </header>
 
@@ -188,7 +198,7 @@
   <section class="hero">
     <div class="inner">
       <h2 class="t-title">Caso práctico de compensación - Máster Executive Garrigues 2025</h2>
-      <p>Simula el neto disponible al comprar un vehículo por tu cuenta frente a un renting vía retribución flexible.</p>
+      <p>Simula el neto disponible al comprar un vehículo por tu cuenta, por renting vía retribución flexible o por entrega en propiedad (retribución en especie).</p>
     </div>
   </section>
 
@@ -205,7 +215,6 @@
             <div class="span-6">
               <label for="B">Retribución fija bruta anual (€)</label>
               <input id="B" type="text" value="40000 €" data-type="eur" />
-              <!-- <div class="helper">Admite 40.000 · 40,000 · 40000</div> -->
             </div>
             <div class="span-6">
               <label for="t">Tipo marginal IRPF (%)</label>
@@ -216,78 +225,134 @@
 
         <!-- 2. Compra por su cuenta -->
         <div class="card span-6">
-          <h3 class="t-title">Compra por su cuenta</h3>
-
-          <label for="costeCompraMensual">Coste mensual estimado del coche (€)</label>
-          <input id="costeCompraMensual" type="text" value="590 €" data-type="eur" />
-
-          <p class="overline">KPI</p>
-          <p class="kpi t-numeral" id="kpiCompra">&mdash;</p>
-
           <details>
-            <summary>Resumen</summary>
-            <table><tbody id="tablaCompraResumen"></tbody></table>
-          </details>
+            <summary><h3 class="t-title" style="margin:0">Compra por su cuenta</h3></summary>
 
-          <details>
-            <summary>Detalle del cálculo</summary>
-            <table><tbody id="tablaCompraDetalle"></tbody></table>
+            <label for="costeCompraMensual">Coste mensual estimado del coche (€)</label>
+            <input id="costeCompraMensual" type="text" value="590 €" data-type="eur" />
+
+            <p class="overline">KPI</p>
+            <p class="kpi t-numeral" id="kpiCompra">&mdash;</p>
+
+            <details>
+              <summary>Resumen</summary>
+              <table><tbody id="tablaCompraResumen"></tbody></table>
+            </details>
+            <details>
+              <summary>Detalle del cálculo</summary>
+              <table><tbody id="tablaCompraDetalle"></tbody></table>
+            </details>
           </details>
         </div>
 
+
+        <!-- 2b. Entrega del vehículo en propiedad (debajo de compra) -->
+        <div class="card span-6 tight">
+          <details>
+            <summary><h3 class="t-title" style="margin:0">Entrega del vehículo en propiedad</h3></summary>
+
+            <label for="tipoEntrega">Tipo de entrega</label>
+            <select id="tipoEntrega">
+              <option value="directa">Entrega directa (sin uso previo)</option>
+              <option value="posterior">Uso previo y posterior entrega</option>
+            </select>
+
+            <label for="costeAdq">Coste de adquisición para el empleador (€)
+              <span class="hi" data-tip="Incluye IVA, IEDMT y gastos.">i</span>
+            </label>
+            <input id="costeAdq" type="text" value="30000 €" data-type="eur" />
+
+            <div id="bloquePosterior" style="display:none">
+              <label for="aniosUso">Años de uso antes de la entrega</label>
+              <input id="aniosUso" type="text" value="3" data-type="num" />
+              <label for="vmEntrega">Valor de mercado en la fecha de entrega (€)</label>
+              <input id="vmEntrega" type="text" value="20000 €" data-type="eur" />
+            </div>
+
+            <div class="grid" style="margin-top:var(--control-gap)">
+              <div class="span-6">
+                <label for="tEnt">Tipo IRPF (entrega) (%)</label>
+                <input id="tEnt" type="text" value="25 %" data-type="pct" />
+              </div>
+              <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
+                <input id="sameAsMarginalEnt" type="checkbox" checked aria-describedby="sameEntLbl">
+                <label id="sameEntLbl" for="sameAsMarginalEnt" style="margin:0;">Igual que el tipo marginal</label>
+              </div>
+            </div>
+
+            <label for="ingresoEntregaSel">Ingreso a cuenta de la entrega</label>
+            <select id="ingresoEntregaSel">
+              <option value="repercutido">Repercutido al trabajador</option>
+              <option value="norepercutido">No repercutido (lo asume la empresa)</option>
+            </select>
+
+            <p class="overline">KPI</p>
+            <p class="kpi t-numeral" id="kpiEntrega">&mdash;</p>
+
+            <details>
+              <summary>Resumen de la entrega</summary>
+              <table><tbody id="tablaEntregaResumen"></tbody></table>
+            </details>
+            <details>
+              <summary>Detalle de retenciones (entrega)</summary>
+              <table><tbody id="tablaEntregaDetalle"></tbody></table>
+            </details>
+          </details>
+        </div>
+
+
         <!-- 3. Renting vía flex -->
         <div class="card span-6">
-          <h3 class="t-title">Renting vía retribución flexible</h3>
-
-          <label for="Cmensual">Cuota renting mensual (€)</label>
-          <input id="Cmensual" type="text" value="620 €" data-type="eur" />
-
-          <label for="p">% de uso privativo</label>
-          <input id="p" type="text" value="40 %" data-type="pct" />
-
-          <label for="V">Valor de mercado del vehículo para AEAT (€)
-            <span class="hi" data-tip="Valor de mercado como si fuera nuevo. La AEAT toma el 20% anual de este valor.">i</span>
-          </label>
-          <input id="V" type="text" value="30000 €" data-type="eur" />
-
-          <label for="ecoRed">Reducción eficiencia (art. 48 bis RIRPF)
-            <span class="hi" data-tip="Si corresponde por Euro 6/GLP/GN/BEV/PHEV, aplica aquí el % de reducción. La norma exige además límites de precio sin impuestos; ver manual AEAT.">i</span>
-          </label>
-          <select id="ecoRed" aria-label="Reducción por eficiencia energética">
-            <option value="0">Sin reducción (0%)</option>
-            <option value="0.15">15% · Euro 6, ≤120 g CO₂ y ≤25.000 € sin impuestos</option>
-            <option value="0.20">20% · Euro 6 + híbrido/GLP/GN, ≤35.000 € sin impuestos</option>
-            <option value="0.30">30% · BEV/E-REV/PHEV (≥15 km), ≤40.000 € sin impuestos</option>
-          </select>
-
-          <div class="grid" style="margin-top:var(--control-gap)">
-            <div class="span-6">
-              <label for="tFlex">Tipo IRPF (flex) (%) <span class="hi" data-tip="Puedes usar un tipo más bajo si el sacrificio reduce tu marginal efectivo. Por defecto replica el marginal general.">i</span></label>
-              <input id="tFlex" type="text" value="25 %" data-type="pct" />
-            </div>
-            <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
-              <input id="sameAsMarginal" type="checkbox" checked aria-describedby="samelabel">
-              <label id="samelabel" for="sameAsMarginal" style="margin:0;">Igual que el tipo marginal</label>
-            </div>
-          </div>
-
-          <label for="ingresoCuentaSel">Ingreso a cuenta de la especie</label>
-          <select id="ingresoCuentaSel" aria-label="Ingreso a cuenta">
-            <option value="repercutido">Repercutido al trabajador</option>
-            <option value="norepercutido">No repercutido (lo asume la empresa)</option>
-          </select>
-
-          <p class="overline">KPI</p>
-          <p class="kpi t-numeral" id="kpiRenting">&mdash;</p>
-
           <details>
-            <summary>Resumen fiscal</summary>
-            <table><tbody id="tablaRentingResumen"></tbody></table>
-          </details>
+            <summary><h3 class="t-title" style="margin:0">Renting vía retribución flexible</h3></summary>
 
-          <details>
-            <summary>Detalle de retenciones</summary>
-            <table><tbody id="tablaRentingDetalle"></tbody></table>
+            <label for="Cmensual">Cuota renting mensual (€)</label>
+            <input id="Cmensual" type="text" value="620 €" data-type="eur" />
+
+            <label for="p">% de uso privativo</label>
+            <input id="p" type="text" value="40 %" data-type="pct" />
+
+            <label for="V">Valor de mercado del vehículo para AEAT (€)
+              <span class="hi" data-tip="La AEAT toma el 20% anual de este valor.">i</span>
+            </label>
+            <input id="V" type="text" value="30000 €" data-type="eur" />
+
+            <label for="ecoRed">Reducción eficiencia (art. 48 bis RIRPF)</label>
+            <select id="ecoRed" aria-label="Reducción por eficiencia energética">
+              <option value="0">Sin reducción (0%)</option>
+              <option value="0.15">15% · Euro 6, ≤120 g CO₂ y ≤25.000 € sin impuestos</option>
+              <option value="0.20">20% · Euro 6 + híbrido/GLP/GN, ≤35.000 € sin impuestos</option>
+              <option value="0.30">30% · BEV/E-REV/PHEV (≥15 km), ≤40.000 € sin impuestos</option>
+            </select>
+
+            <div class="grid" style="margin-top:var(--control-gap)">
+              <div class="span-6">
+                <label for="tFlex">Tipo IRPF (flex) (%)</label>
+                <input id="tFlex" type="text" value="25 %" data-type="pct" />
+              </div>
+              <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
+                <input id="sameAsMarginal" type="checkbox" checked aria-describedby="samelabel">
+                <label id="samelabel" for="sameAsMarginal" style="margin:0;">Igual que el tipo marginal</label>
+              </div>
+            </div>
+
+            <label for="ingresoCuentaSel">Ingreso a cuenta de la especie</label>
+            <select id="ingresoCuentaSel" aria-label="Ingreso a cuenta">
+              <option value="repercutido">Repercutido al trabajador</option>
+              <option value="norepercutido">No repercutido (lo asume la empresa)</option>
+            </select>
+
+            <p class="overline">KPI</p>
+            <p class="kpi t-numeral" id="kpiRenting">&mdash;</p>
+
+            <details>
+              <summary>Resumen fiscal</summary>
+              <table><tbody id="tablaRentingResumen"></tbody></table>
+            </details>
+            <details>
+              <summary>Detalle de retenciones</summary>
+              <table><tbody id="tablaRentingDetalle"></tbody></table>
+            </details>
           </details>
         </div>
       </main>
@@ -299,18 +364,47 @@
 
           <table class="table-compact" style="margin-top:4px">
             <tbody id="tablaResumen">
-              <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
-              <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
-              <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
-              <tr class="emph-row">
-                <td>Diferencia vs compra · Repercutido</td>
-                <td style="text-align:right" id="dRep">—</td>
-              </tr>
-              <tr class="emph-row">
-                <td>Diferencia vs compra · No repercutido</td>
-                <td style="text-align:right" id="dNoRep">—</td>
-              </tr>
-            </tbody>
+            <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
+
+            <!-- Entrega directa -->
+            <tr><td>Entrega directa (ingreso repercutido)</td><td style="text-align:right" id="rEntDirRep">—</td></tr>
+            <tr><td>Entrega directa (ingreso no repercutido)</td><td style="text-align:right" id="rEntDirNoRep">—</td></tr>
+
+            <!-- Entrega posterior -->
+            <tr><td>Entrega posterior (ingreso repercutido)</td><td style="text-align:right" id="rEntPosRep">—</td></tr>
+            <tr><td>Entrega posterior (ingreso no repercutido)</td><td style="text-align:right" id="rEntPosNoRep">—</td></tr>
+
+            <!-- Renting (uso) -->
+            <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
+            <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
+
+            <!-- Deltas vs compra -->
+            <tr class="emph-row">
+              <td>Diferencia vs compra · Entrega directa (repercutido)</td>
+              <td style="text-align:right" id="dEntDirRep">—</td>
+            </tr>
+            <tr class="emph-row">
+              <td>Diferencia vs compra · Entrega directa (no repercutido)</td>
+              <td style="text-align:right" id="dEntDirNoRep">—</td>
+            </tr>
+            <tr class="emph-row">
+              <td>Diferencia vs compra · Entrega posterior (repercutido)</td>
+              <td style="text-align:right" id="dEntPosRep">—</td>
+            </tr>
+            <tr class="emph-row">
+              <td>Diferencia vs compra · Entrega posterior (no repercutido)</td>
+              <td style="text-align:right" id="dEntPosNoRep">—</td>
+            </tr>
+            <tr class="emph-row">
+              <td>Diferencia vs compra · Renting (repercutido)</td>
+              <td style="text-align:right" id="dRep">—</td>
+            </tr>
+            <tr class="emph-row">
+              <td>Diferencia vs compra · Renting (no repercutido)</td>
+              <td style="text-align:right" id="dNoRep">—</td>
+            </tr>
+          </tbody>
+
           </table>
 
           <!-- Enlace NotebookLM visible -->
@@ -334,18 +428,11 @@
                 </a>
               </p>
               <ul style="margin:0 0 10px 18px; padding:0; line-height:1.45">
-                <li><strong>Entrega</strong>: coste de adquisición para el empleador + impuestos y gastos.</li>
-                <li><strong>Utilización</strong>:
-                  <ul style="margin:4px 0 0 16px">
-                    <li>Propiedad empresa: 20% anual × coste de adquisición.</li>
-                    <li>No propiedad: 20% anual × valor de mercado (vehículo nuevo).</li>
-                    <li><em>Incluye</em>: seguros, IVTM, mantenimiento. <em>No</em> incluye combustible.</li>
-                    <li>Uso mixto: imputar por <strong>disponibilidad para uso particular</strong> (% privado).</li>
-                  </ul>
-                </li>
-                <li><strong>Reducciones eco (art. 48 bis RIRPF)</strong>: −15% / −20% / −30% según categoría y límites de precio sin impuestos.</li>
-                <li><strong>Utilización y posterior entrega</strong>: entrega = VM en fecha − 20% anual ya imputado.</li>
-                <li><strong>Ingreso a cuenta</strong>: si no se repercute, se suma para calcular el rendimiento íntegro.</li>
+                <li><strong>Entrega</strong>: coste de adquisición para el empleador + impuestos y gastos, o si hubo uso previo: VM en fecha − 20% anual ya imputado.</li>
+                <li><strong>Utilización</strong>: propiedad empresa → 20% anual × coste; no propiedad → 20% anual × VM nuevo.</li>
+                <li><em>Incluye</em> seguros/IVTM/mantenimiento; <em>no</em> incluye combustible.</li>
+                <li>Uso mixto: imputar por <strong>disponibilidad para uso particular</strong> (% privado).</li>
+                <li><strong>Reducciones eco (art. 48 bis RIRPF)</strong>: −15% / −20% / −30% con límites de precio sin impuestos.</li>
               </ul>
             </div>
           </details>
@@ -394,25 +481,26 @@
       td.textContent = (value>=0?'+':'') + fmtEur(value);
     }
 
+    // Expandir/Contraer todos los escenarios (solo los details de primer nivel en .card)
+    document.getElementById('expandAll').addEventListener('click', ()=>{
+      document.querySelectorAll('.card > details').forEach(d=>d.open=true);
+    });
+    document.getElementById('collapseAll').addEventListener('click', ()=>{
+      document.querySelectorAll('.card > details').forEach(d=>d.open=false);
+    });
+
+
     /* ===== Cálculo principal ===== */
     function calc(){
       const B = getNum('B');
       const t = getNum('t')/100;
       const costeCompraMensual = getNum('costeCompraMensual');
 
-      const Cmens = getNum('Cmensual');
-      const p = getNum('p')/100;
-      const V = getNum('V');
-      const ecoRed = getSelNum('ecoRed'); // 0, 0.15, 0.20, 0.30
-      const tFlex = getNum('tFlex')/100;
-      const ingresoCuentaSel = document.getElementById('ingresoCuentaSel').value; // 'repercutido' | 'norepercutido'
-
-      /* Compra */
+      /* ===== COMPRA ===== */
       const netoSinCoche = B*(1-t);
       const costeCompraAnual = costeCompraMensual*12;
       const netoCompra = netoSinCoche - costeCompraAnual;
 
-      // KPI + Resumen + Detalle
       document.getElementById('kpiCompra').textContent = fmtEur(netoCompra);
       document.getElementById('tablaCompraResumen').innerHTML = `
         <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
@@ -427,30 +515,106 @@
         <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoCompra)}</strong></td></tr>
       `;
 
-      /* Renting (flex) — comunes */
+    /* ===== ENTREGA EN PROPIEDAD ===== */
+    const tipoEntrega = document.getElementById('tipoEntrega').value; // directa | posterior
+    const costeAdq = getNum('costeAdq');
+    const aniosUso = getNum('aniosUso');
+    const vmEntrega = getNum('vmEntrega');
+    const tEnt = getNum('tEnt')/100;
+    const ingresoEntregaSel = document.getElementById('ingresoEntregaSel').value; // repercutido | norepercutido
+
+    // Valoraciones para ambos escenarios (SIEMPRE)
+    const valorEntregaDir = costeAdq;
+    const valoracionUsoAcum = 0.20 * costeAdq * (isFinite(aniosUso) ? aniosUso : 0);
+    const valorEntregaPos = Math.max(0, vmEntrega - valoracionUsoAcum);
+
+    // Helper: neto de entrega según si el ingreso se repercute o no
+    function netoEntrega(valor, repercutido){
+      if(repercutido){
+        const base = B + valor;
+        const irpf = base * tEnt;
+        return B - irpf;
+      } else {
+        const G = valor * tEnt / (1 - tEnt);         // brutalización
+        const base = B + valor + G;
+        const retTot = base * tEnt;
+        const irpfNom = retTot - G;
+        return B - irpfNom;
+      }
+    }
+
+    // Calcula las 4 variantes para el ASIDE
+    const netEntDirRep   = netoEntrega(valorEntregaDir, true);
+    const netEntDirNoRep = netoEntrega(valorEntregaDir, false);
+    const netEntPosRep   = netoEntrega(valorEntregaPos, true);
+    const netEntPosNoRep = netoEntrega(valorEntregaPos, false);
+
+    // KPI y desgloses de la tarjeta de “Entrega” respetan la selección
+    const valorEntregaSeleccionado = (tipoEntrega === 'directa') ? valorEntregaDir : valorEntregaPos;
+    const netoEntregaMostrar = (ingresoEntregaSel === 'norepercutido')
+      ? netoEntrega(valorEntregaSeleccionado, false)
+      : netoEntrega(valorEntregaSeleccionado, true);
+
+    document.getElementById('kpiEntrega').textContent = fmtEur(netoEntregaMostrar);
+    document.getElementById('tablaEntregaResumen').innerHTML = `
+      <tr><td>Tipo de entrega</td><td>${tipoEntrega==='directa'?'Directa (sin uso previo)':'Uso previo y posterior entrega'}</td></tr>
+      <tr><td>Valoración de entrega</td><td>${fmtEur(valorEntregaSeleccionado)}</td></tr>
+      <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
+    `;
+
+    // Detalle (entrega) según selección
+    if(ingresoEntregaSel === 'norepercutido'){
+      const G_ent = valorEntregaSeleccionado * tEnt / (1 - tEnt);
+      const baseIRPF_Ent_B = B + valorEntregaSeleccionado + G_ent;
+      const retTotalEnt_B = baseIRPF_Ent_B * tEnt;
+      const irpfDesdeNominaEnt_B = retTotalEnt_B - G_ent;
+      document.getElementById('tablaEntregaDetalle').innerHTML = `
+        <tr><td class="hint">Ingreso a cuenta (empresa) <span class="hi" data-tip="G = valoración × t / (1 − t).">i</span></td><td>${fmtEur(G_ent)}</td></tr>
+        <tr><td>Base IRPF (teórica)</td><td>${fmtEur(baseIRPF_Ent_B)}</td></tr>
+        <tr><td>Retención total teórica</td><td>${fmtEur(retTotalEnt_B)}</td></tr>
+        <tr><td>Retención desde nómina</td><td>− ${fmtEur(irpfDesdeNominaEnt_B)}</td></tr>
+        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
+      `;
+    } else {
+      const baseIRPF_Ent_A = B + valorEntregaSeleccionado;
+      const irpf_Ent_A = baseIRPF_Ent_A * tEnt;
+      document.getElementById('tablaEntregaDetalle').innerHTML = `
+        <tr><td>Base IRPF</td><td>${fmtEur(baseIRPF_Ent_A)}</td></tr>
+        <tr><td>IRPF</td><td>− ${fmtEur(irpf_Ent_A)}</td></tr>
+        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
+      `;
+    }
+
+
+      /* ===== RENTING (uso) ===== */
+      const Cmens = getNum('Cmensual');
+      const p = getNum('p')/100;
+      const V = getNum('V');
+      const ecoRed = getSelNum('ecoRed'); // 0, 0.15, 0.20, 0.30
+      const tFlex = getNum('tFlex')/100;
+      const ingresoCuentaSel = document.getElementById('ingresoCuentaSel').value; // repercutido | norepercutido
+
       const Canual = Cmens*12;
-      const valoracionBase20 = 0.20*V;                          // antes de reducción
-      const valoracionAnual = valoracionBase20 * (1 - ecoRed);  // tras reducción art. 48 bis
-      const especie = valoracionAnual * p;                      // imputable por % privado
+      const valoracionBase20 = 0.20*V;
+      const valoracionAnual = valoracionBase20 * (1 - ecoRed);
+      const especie = valoracionAnual * p;
       const brutoReducido = B - Canual;
 
-      // A) Ingreso a cuenta repercutido
+      // Renting A) repercutido
       const baseIRPF_A = brutoReducido + especie;
       const irpf_A = baseIRPF_A * tFlex;
       const netoFlex_A = brutoReducido - irpf_A;
 
-      // B) Ingreso a cuenta no repercutido (lo asume la empresa)
-      const G = especie * tFlex / (1 - tFlex);        // brutalización
+      // Renting B) no repercutido
+      const G = especie * tFlex / (1 - tFlex);
       const baseIRPF_B = brutoReducido + especie + G;
       const retencionTotal_B = baseIRPF_B * tFlex;
       const irpfDesdeNomina_B = retencionTotal_B - G;
       const netoFlex_B = brutoReducido - irpfDesdeNomina_B;
 
-      // KPI renting
       const netoRentingMostrar = (ingresoCuentaSel === 'norepercutido') ? netoFlex_B : netoFlex_A;
       document.getElementById('kpiRenting').textContent = fmtEur(netoRentingMostrar);
 
-      // Resumen fiscal renting
       document.getElementById('tablaRentingResumen').innerHTML = `
         <tr><td class="hint">Cuota renting anual <span class="hi" data-tip="Cuota mensual × 12. Sacrificio salarial antes de IRPF.">i</span></td><td>− ${fmtEur(Canual)}</td></tr>
         <tr><td class="hint">Valoración anual (20% × V) <span class="hi" data-tip="Valoración estándar AEAT sobre vehículo nuevo.">i</span></td><td>${fmtEur(valoracionBase20)}</td></tr>
@@ -459,8 +623,6 @@
         <tr><td class="hint">Especie imputable (% uso) <span class="hi" data-tip="Valoración tras reducción × % uso privativo.">i</span></td><td>${fmtEur(especie)}</td></tr>
         <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(netoRentingMostrar)}</strong></td></tr>
       `;
-
-      // Detalle de retenciones renting
       const detalleRepercutido = `
         <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
         <tr><td>Base IRPF</td><td>${fmtEur(baseIRPF_A)}</td></tr>
@@ -478,45 +640,74 @@
       document.getElementById('tablaRentingDetalle').innerHTML =
         (ingresoCuentaSel === 'norepercutido') ? detalleNoRepercutido : detalleRepercutido;
 
-      // Resultado comparativo (tres opciones)
+      /* ===== ASIDE: comparativa de CUATRO opciones ===== */
+      // Pintar resultados en ASIDE
       document.getElementById('rCompra').textContent = fmtEur(netoCompra);
+
+      // Entrega directa
+      document.getElementById('rEntDirRep').textContent   = fmtEur(netEntDirRep);
+      document.getElementById('rEntDirNoRep').textContent = fmtEur(netEntDirNoRep);
+
+      // Entrega posterior
+      document.getElementById('rEntPosRep').textContent   = fmtEur(netEntPosRep);
+      document.getElementById('rEntPosNoRep').textContent = fmtEur(netEntPosNoRep);
+
+      // Renting (ya lo tenías)
       document.getElementById('rFlexRep').textContent = fmtEur(netoFlex_A);
       document.getElementById('rFlexNoRep').textContent = fmtEur(netoFlex_B);
 
-      const dRep = netoFlex_A - netoCompra;
-      const dNoRep = netoFlex_B - netoCompra;
-      paintDeltaCell(document.getElementById('dRep'), dRep);
-      paintDeltaCell(document.getElementById('dNoRep'), dNoRep);
+      // Deltas vs compra
+      paintDeltaCell(document.getElementById('dEntDirRep'),   netEntDirRep   - netoCompra);
+      paintDeltaCell(document.getElementById('dEntDirNoRep'), netEntDirNoRep - netoCompra);
+      paintDeltaCell(document.getElementById('dEntPosRep'),   netEntPosRep   - netoCompra);
+      paintDeltaCell(document.getElementById('dEntPosNoRep'), netEntPosNoRep - netoCompra);
+      paintDeltaCell(document.getElementById('dRep'),         netoFlex_A     - netoCompra);
+      paintDeltaCell(document.getElementById('dNoRep'),       netoFlex_B     - netoCompra);
+
     }
 
     /* ===== Eventos ===== */
-    const inputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex'];
+    const inputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex','costeAdq','aniosUso','vmEntrega','tEnt'];
     inputs.forEach(id=>{
       const el = document.getElementById(id);
+      if(!el) return;
       el.addEventListener('input', calc);
       el.addEventListener('blur', ()=>{ formatInput(el); calc(); });
       el.addEventListener('focus', ()=>{ unformatOnFocus(el); });
     });
-    ['ecoRed','ingresoCuentaSel'].forEach(id=>document.getElementById(id).addEventListener('change', calc));
+    ['ecoRed','ingresoCuentaSel','ingresoEntregaSel','tipoEntrega'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.addEventListener('change', ()=>{
+        if(id==='tipoEntrega'){
+          document.getElementById('bloquePosterior').style.display =
+            (el.value === 'posterior') ? '' : 'none';
+        }
+        calc();
+      });
+    });
 
-    // Sincronizar tipo flex con marginal
+    // Sincronizar tipos con marginal
     const same = document.getElementById('sameAsMarginal');
     const tInput = document.getElementById('t');
     const tFlexInput = document.getElementById('tFlex');
-    same.addEventListener('change', ()=>{
-      if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput); }
-      calc();
-    });
+    same.addEventListener('change', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput);} calc(); });
     tInput.addEventListener('input', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; calc(); } });
 
-    // Controles de vista
+    const sameEnt = document.getElementById('sameAsMarginalEnt');
+    const tEntInput = document.getElementById('tEnt');
+    sameEnt.addEventListener('change', ()=>{ if(sameEnt.checked){ tEntInput.value = tInput.value; formatInput(tEntInput);} calc(); });
+    tInput.addEventListener('input', ()=>{ if(sameEnt.checked){ tEntInput.value = tInput.value; calc(); } });
+
+    // Densidad
     document.getElementById('toggleDensity').addEventListener('change', (e)=>{
       document.body.classList.toggle('compact', e.target.checked);
     });
 
-
     // Inicialización
-    inputs.forEach(id=>formatInput(document.getElementById(id)));
+    inputs.forEach(id=>{ const el = document.getElementById(id); if(el) formatInput(el); });
+    // Mostrar/ocultar bloque de entrega posterior según selección inicial
+    document.getElementById('bloquePosterior').style.display =
+      (document.getElementById('tipoEntrega').value === 'posterior') ? '' : 'none';
     calc();
   </script>
 </body>
