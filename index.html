@@ -4,79 +4,187 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Comparador de neto disponible: compra vs renting (flex)</title>
+
   <style>
+    /* ================== Identidad y sistema de diseño ================== */
     :root{
+      /* Paleta */
       --ufv-blue-900:#0a2a4a; --ufv-blue-800:#0c3563; --ufv-blue-700:#114a7a; --ufv-blue-600:#165e95;
       --ufv-blue-100:#e9f1fb; --ufv-ink:#0f1720; --ufv-ink-muted:#4b5563; --panel:#ffffff; --bg:#f6f8fc;
       --line:#e5e7eb; --ok:#0f8a41; --bad:#c21f2f; --neu:#6b7280; --shadow:0 6px 18px rgba(10,42,74,.08);
       --radius:14px;
+
+      /* Escala de espacios */
+      --space-1:6px; --space-2:10px; --space-3:14px; --space-4:18px; --space-5:24px; --space-6:32px;
+
+      /* Densidad por defecto: cómoda */
+      --grid-gap: var(--space-3);
+      --block-gap: var(--space-5);
+      --control-gap: var(--space-3);
+      --table-padding-y: 10px;
+      --table-padding-x: 10px;
+      --para-lh: 1.45;
     }
-    html,body{margin:0;background:var(--bg);color:var(--ufv-ink);font-family:Arial,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif}
-    .t-title{font-family:"Times New Roman",Times,serif;letter-spacing:.2px}
-    .t-numeral{font-family:Rockwell,"Segoe UI","Arial Black",Arial,sans-serif}
+    /* Modo compacto */
+    body.compact {
+      --grid-gap: 10px;
+      --block-gap: var(--space-4);
+      --control-gap: var(--space-2);
+      --table-padding-y: 8px;
+      --table-padding-x: 8px;
+    }
+
+
+    html,body{
+      margin:0; background:var(--bg); color:var(--ufv-ink);
+      font-family: Arial, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+    .t-title{ font-family:"Times New Roman", Times, serif; letter-spacing:.2px }
+    .t-numeral{ font-family:Rockwell,"Segoe UI","Arial Black",Arial,sans-serif; letter-spacing:.2px }
+
     .wrap{max-width:1280px;margin:auto;padding:22px 16px}
-    .site-header{background:linear-gradient(0deg,var(--ufv-blue-800),var(--ufv-blue-900));color:#fff;box-shadow:var(--shadow)}
-    .site-header .inner{max-width:1280px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:16px}
+
+    /* ================== Header ================== */
+    .site-header{
+      background:linear-gradient(0deg, var(--ufv-blue-800), var(--ufv-blue-900));
+      color:#fff; box-shadow: var(--shadow);
+    }
+    .site-header .inner{
+      max-width:1280px;margin:0 auto;padding:14px 16px;
+      display:flex;align-items:center;gap:16px; justify-content:space-between;
+    }
     .brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit}
     .brand img{height:44px;width:auto;display:block}
     .brand-title{display:flex;flex-direction:column}
     .brand-title h1{margin:0;font-size:22px;font-weight:800}
     .brand-title span{opacity:.9;font-size:13px}
+
+    /* Controles de vista */
+    .view-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .vc-chip{
+      display:inline-flex;align-items:center;gap:8px;
+      background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.25);
+      padding:6px 10px; border-radius:999px; font-size:13px; cursor:pointer; user-select:none;
+    }
+    .vc-chip input{accent-color:#fff}
+
+    /* ================== Hero ================== */
     .hero{background:#fff;border-bottom:1px solid var(--line)}
     .hero .inner{max-width:1280px;margin:0 auto;padding:18px 16px 10px}
     .hero h2{margin:0;font-size:26px;color:var(--ufv-blue-900)}
-    .hero p{margin:6px 0 0;color:#1f2937}
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
-    .span-12{grid-column:span 12}.span-6{grid-column:span 6}.span-4{grid-column:span 4}
-    h3{margin:0 0 10px;font-size:18px;color:var(--ufv-blue-900)}
-    label{display:block;font-size:13px;color:var(--ufv-ink-muted);margin:8px 0 6px}
-    input,select{width:100%;box-sizing:border-box;background:#fff;color:var(--ufv-ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;outline:none;transition:border .15s,box-shadow .15s}
-    input:focus,select:focus{border-color:var(--ufv-blue-600);box-shadow:0 0 0 3px color-mix(in srgb,var(--ufv-blue-600) 20%,transparent)}
+    .hero p{margin:6px 0 0;color:#1f2937; line-height: var(--para-lh); max-width: 72ch}
+
+    /* ================== Grid y tarjetas ================== */
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--grid-gap)}
+    .card{
+      background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+      padding:var(--space-4);box-shadow:var(--shadow)
+    }
+    .span-12{grid-column:span 12}
+    .span-6{grid-column:span 6}
+    .span-4{grid-column:span 4}
+
+    h3{margin:0 0 var(--space-3);font-size:18px;color:var(--ufv-blue-900)}
+
+    /* Controles */
+    label{display:block;font-size:13px;color:var(--ufv-ink-muted);margin:var(--control-gap) 0 6px}
+    input,select{
+      width:100%;box-sizing:border-box;background:#fff;color:var(--ufv-ink);
+      border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;
+      outline:none;transition:border .15s, box-shadow .15s
+    }
+    input:focus, select:focus{
+      border-color:var(--ufv-blue-600);
+      box-shadow:0 0 0 3px color-mix(in srgb, var(--ufv-blue-600) 20%, transparent);
+    }
     .helper{color:var(--ufv-ink-muted);font-size:12px;margin-top:4px}
-    table{width:100%;border-collapse:collapse;margin-top:8px}
-    td{padding:8px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+
+    /* Tablas */
+    table{width:100%;border-collapse:collapse;margin-top:var(--space-2)}
+    td{
+      padding:var(--table-padding-y) var(--table-padding-x);
+      border-bottom:1px solid var(--line);
+      text-align:right;font-variant-numeric:tabular-nums
+    }
+    tr:nth-child(even) td{ background: #fafbfc; }
     td:first-child{text-align:left;color:#334155}
-    .kpi{font-size:26px;font-weight:800;margin:8px 0}
-    .kpi.t-numeral{letter-spacing:.2px}
+    .table-compact td{padding:6px 8px}
+
+    /* KPIs y pill */
+    .kpi{font-size:28px;font-weight:800;margin:var(--space-2) 0}
     .pill{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;font-size:12px;color:#334155;background:var(--ufv-blue-100)}
     .good{color:var(--ok)} .bad{color:var(--bad)} .neu{color:var(--neu)}
     .result{font-size:30px;font-weight:900;margin:6px 0}
     .muted{color:var(--ufv-ink-muted)}
+
+    /* Tooltips */
     .hint{display:inline-flex;align-items:center;gap:6px}
-    .hi{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border:1px solid #cbd5e1;border-radius:50%;font-size:11px;color:#1f2937;cursor:help;position:relative;background:#fff}
-    .hi:hover::after{content:attr(data-tip);position:absolute;left:50%;transform:translateX(-50%);bottom:135%;max-width:520px;min-width:280px;line-height:1.45;background:#fff;color:#0f1720;border:1px solid var(--line);padding:10px 12px;border-radius:10px;white-space:normal;z-index:5;box-shadow:var(--shadow)}
-    .hi:hover::before{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:124%;border:7px solid transparent;border-top-color:var(--line)}
-    .layout{display:grid;grid-template-columns:1fr 420px;gap:18px;align-items:start}
-    .aside-sticky{position:sticky;top:16px}
-    @media (max-width:1024px){.layout{grid-template-columns:1fr}.aside-sticky{position:static}}
-    .site-footer{color:var(--ufv-ink-muted);font-size:12px;padding:18px 0 28px;text-align:center}
-    .table-compact td{padding:6px 8px}
-    /* Fila de resumen enfatizada */
-    .emph-row td{
-      font-weight: 800;
-      font-size: 16px;
-      background: #f1f5f9;      /* sutil */
+    .hi{
+      display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;
+      border:1px solid #cbd5e1;border-radius:50%;font-size:11px;color:#1f2937;cursor:help;position:relative;background:#fff
     }
-    .emph-row td:first-child{
-      letter-spacing: .2px;
+    .hi:hover::after{
+      content:attr(data-tip); position:absolute; left:50%; transform:translateX(-50%);
+      bottom:135%; max-width:520px; min-width:280px; line-height:var(--para-lh);
+      background:#fff; color:#0f1720; border:1px solid var(--line);
+      padding:10px 12px; border-radius:10px; white-space:normal; z-index:5; box-shadow:var(--shadow)
+    }
+    .hi:hover::before{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:124%;border:7px solid transparent;border-top-color:var(--line)}
+    tr:hover td { background: #f6f8fb; }
+
+    /* Acordeones */
+    details{margin-top:var(--space-3); border-top:1px solid var(--line); padding-top:var(--space-2)}
+    summary{
+      list-style:none; cursor:pointer; font-weight:700; color:var(--ufv-blue-900);
+      display:flex; align-items:center; gap:8px;
+    }
+    summary::-webkit-details-marker { display:none; }
+    summary::before{
+      content:"▸"; transition: transform .2s; font-size:14px; color:var(--ufv-blue-900);
+    }
+    details[open] summary::before{ transform: rotate(90deg); }
+    .overline{ color: var(--ufv-ink-muted); font-size:12px; letter-spacing:.08em; text-transform:uppercase; margin-top: var(--space-3) }
+
+    /* Layout lateral */
+    .layout{display:grid;grid-template-columns: 1fr 420px;gap:var(--grid-gap);align-items:start; margin-top: var(--block-gap)}
+    .aside-sticky{position:sticky;top:16px}
+    @media (max-width:1024px){
+      .layout{grid-template-columns: 1fr}
+      .aside-sticky{position:static}
     }
 
+    /* Fila de resumen enfatizada */
+    .emph-row td{ font-weight:800; font-size:16px; background:#f1f5f9; }
+    .emph-row td:first-child{ letter-spacing:.2px; }
+
+    /* Footer */
+    .site-footer{color:var(--ufv-ink-muted);font-size:12px;padding:18px 0 28px;text-align:center}
   </style>
 </head>
 <body>
+  <!-- Cabecera institucional -->
   <header class="site-header">
     <div class="inner">
       <a class="brand" href="#">
-        <img id="ufvLogo" src="./logo-UFV-blanco.png" alt="UFV" onerror="this.onerror=null; this.src='./logo-UFV.png';">
+        <img id="ufvLogo" src="./logo-UFV-blanco.png" alt="UFV"
+             onerror="this.onerror=null; this.src='./logo-UFV.png';">
         <div class="brand-title">
           <h1 class="t-title">CASO PRÁCTICO</h1>
           <span>Comparador de neto disponible · compra vs renting (flex)</span>
         </div>
       </a>
+
+      <!-- Controles de vista -->
+      <div class="view-controls" aria-label="Preferencias de visualización">
+        <label class="vc-chip" title="Aumenta o reduce espacios y padding">
+          <input id="toggleDensity" type="checkbox"> Densidad compacta
+        </label>
+      </div>
     </div>
   </header>
 
+  <!-- Hero -->
   <section class="hero">
     <div class="inner">
       <h2 class="t-title">Caso práctico de compensación - Máster Executive Garrigues 2025</h2>
@@ -84,306 +192,332 @@
     </div>
   </section>
 
+  <!-- Contenido -->
   <div class="wrap">
     <div class="layout">
-      <main>
-        <div class="grid">
-          <div class="card span-12">
-            <h3 class="t-title">Salario e impuestos</h3>
-            <div class="grid">
-              <div class="span-6">
-                <label>Retribución fija bruta anual (€)</label>
-                <input id="B" type="text" value="40000 €" data-type="eur" />
-                <!-- <div class="helper">Admite 40.000 · 40,000 · 40000</div> -->
-              </div>
-              <div class="span-6">
-                <label>Tipo marginal IRPF (%)</label>
-                <input id="t" type="text" value="25 %" data-type="pct" />
-              </div>
+
+      <!-- MAIN -->
+      <main class="grid">
+        <!-- 1. Salario e IRPF -->
+        <div class="card span-12">
+          <h3 class="t-title">Salario e impuestos</h3>
+          <div class="grid">
+            <div class="span-6">
+              <label for="B">Retribución fija bruta anual (€)</label>
+              <input id="B" type="text" value="40000 €" data-type="eur" />
+              <!-- <div class="helper">Admite 40.000 · 40,000 · 40000</div> -->
+            </div>
+            <div class="span-6">
+              <label for="t">Tipo marginal IRPF (%)</label>
+              <input id="t" type="text" value="25 %" data-type="pct" />
             </div>
           </div>
-
-          <div class="card span-6">
-            <h3 class="t-title">Compra por su cuenta</h3>
-            <label>Coste mensual estimado del coche (€)</label>
-            <input id="costeCompraMensual" type="text" value="590 €" data-type="eur" />
-            <p class="kpi t-numeral" id="kpiCompra">&mdash;</p>
-            <table><tbody id="tablaCompra"></tbody></table>
-          </div>
-
-          <div class="card span-6">
-            <h3 class="t-title">Renting vía retribución flexible</h3>
-
-            <label>Cuota renting mensual (€)</label>
-            <input id="Cmensual" type="text" value="620 €" data-type="eur" />
-
-            <label>% de uso privativo</label>
-            <input id="p" type="text" value="40 %" data-type="pct" />
-
-            <label>Valor de mercado del vehículo para AEAT (€)
-              <span class="hi" data-tip="Valor de mercado como si fuera nuevo. La AEAT toma el 20% anual de este valor.">i</span>
-            </label>
-            <input id="V" type="text" value="30000 €" data-type="eur" />
-
-            <label>Reducción eficiencia (art. 48 bis RIRPF)
-              <span class="hi" data-tip="Si corresponde por Euro 6/GLP/GN/BEV/PHEV, aplica aquí el % de reducción. La norma exige además límites de precio sin impuestos; ver manual AEAT.">i</span>
-            </label>
-            <select id="ecoRed">
-              <option value="0">Sin reducción (0%)</option>
-              <option value="0.15">15% · Euro 6, ≤120 g CO₂ y ≤25.000 € sin impuestos</option>
-              <option value="0.20">20% · Euro 6 + híbrido/GLP/GN, ≤35.000 € sin impuestos</option>
-              <option value="0.30">30% · BEV/E-REV/PHEV (≥15 km), ≤40.000 € sin impuestos</option>
-            </select>
-
-            <div class="grid" style="margin-top:6px">
-              <div class="span-6">
-                <label>Tipo IRPF (flex) (%) <span class="hi" data-tip="Puedes usar un tipo más bajo si el sacrificio reduce tu marginal efectivo. Por defecto replica el marginal general.">i</span></label>
-                <input id="tFlex" type="text" value="25 %" data-type="pct" />
-              </div>
-              <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
-                <input id="sameAsMarginal" type="checkbox" checked>
-                <label for="sameAsMarginal" style="margin:0;">Igual que el tipo marginal</label>
-              </div>
-            </div>
-
-            <label>Ingreso a cuenta de la especie</label>
-            <select id="ingresoCuentaSel">
-              <option value="repercutido">Repercutido al trabajador</option>
-              <option value="norepercutido">No repercutido (lo asume la empresa)</option>
-            </select>
-
-            <p class="kpi t-numeral" id="kpiRenting">&mdash;</p>
-            <table><tbody id="tablaRenting"></tbody></table>
-          </div>
-
-<!--           <div class="card span-12">
-            <details>
-              <summary>Tests rápidos</summary>
-              <div id="testsOut" class="muted" style="font-size:13px"></div>
-            </details>
-          </div>
-        </div> -->
-      </main>
-
-      <div class="card">
-        <h3 class="t-title">Resultado</h3>
-
-        <table class="table-compact" style="margin-top:4px">
-          <tbody id="tablaResumen">
-            <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
-            <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
-            <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
-            <tr class="emph-row">
-              <td>Diferencia vs compra · Repercutido</td>
-              <td style="text-align:right" id="dRep">—</td>
-            </tr>
-            <tr class="emph-row">
-              <td>Diferencia vs compra · No repercutido</td>
-              <td style="text-align:right" id="dNoRep">—</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Enlace NotebookLM visible -->
-        <div style="margin:16px 0; text-align:center">
-          <a href="https://notebooklm.google.com/notebook/64643cca-c6ac-43ac-9c79-a8525b5cb14b" 
-            target="_blank" rel="noopener noreferrer"
-            style="display:inline-block; background:var(--ufv-blue-700); color:#fff; 
-                    padding:10px 16px; border-radius:8px; font-weight:700; text-decoration:none;
-                    box-shadow:var(--shadow); transition:background .2s">
-            💬 Pregunta sobre la ley
-          </a>
         </div>
 
-        <details style="margin-top:14px">
-          <summary style="cursor:pointer; font-weight:700; color:var(--ufv-blue-900)">Referencia AEAT y resumen</summary>
-          <div style="margin-top:10px; font-size:13px; color:#334155">
-            <p style="margin:6px 0 10px">
-              <a href="https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2024/c03-rendimientos-trabajo/rendimientos-trabajo-especie/computo-rendimientos-trabajo-especie/reglas-especiales/entrega-utilizacion-vehiculos-automoviles.html" 
-                target="_blank" rel="noopener noreferrer">
-                Página oficial · AEAT · Entrega o utilización de vehículos automóviles
-              </a>
-            </p>
-            <ul style="margin:0 0 10px 18px; padding:0; line-height:1.45">
-              <li><strong>Entrega</strong>: coste de adquisición para el empleador + impuestos y gastos.</li>
-              <li><strong>Utilización</strong>:
-                <ul style="margin:4px 0 0 16px">
-                  <li>Propiedad empresa: 20% anual × coste de adquisición.</li>
-                  <li>No propiedad: 20% anual × valor de mercado (vehículo nuevo).</li>
-                  <li><em>Incluye</em>: seguros, IVTM, mantenimiento. <em>No</em> incluye combustible.</li>
-                  <li>Uso mixto: imputar por <strong>disponibilidad para uso particular</strong> (% privado).</li>
-                </ul>
-              </li>
-              <li><strong>Reducciones eco (art. 48 bis RIRPF)</strong>: −15% / −20% / −30% según categoría y límites de precio sin impuestos.</li>
-              <li><strong>Utilización y posterior entrega</strong>: entrega = VM en fecha − 20% anual ya imputado.</li>
-              <li><strong>Ingreso a cuenta</strong>: si no se repercute, se suma para calcular el rendimiento íntegro.</li>
-            </ul>
-          </div>
-        </details>
-      </div>
+        <!-- 2. Compra por su cuenta -->
+        <div class="card span-6">
+          <h3 class="t-title">Compra por su cuenta</h3>
 
+          <label for="costeCompraMensual">Coste mensual estimado del coche (€)</label>
+          <input id="costeCompraMensual" type="text" value="590 €" data-type="eur" />
+
+          <p class="overline">KPI</p>
+          <p class="kpi t-numeral" id="kpiCompra">&mdash;</p>
+
+          <details>
+            <summary>Resumen</summary>
+            <table><tbody id="tablaCompraResumen"></tbody></table>
+          </details>
+
+          <details>
+            <summary>Detalle del cálculo</summary>
+            <table><tbody id="tablaCompraDetalle"></tbody></table>
+          </details>
+        </div>
+
+        <!-- 3. Renting vía flex -->
+        <div class="card span-6">
+          <h3 class="t-title">Renting vía retribución flexible</h3>
+
+          <label for="Cmensual">Cuota renting mensual (€)</label>
+          <input id="Cmensual" type="text" value="620 €" data-type="eur" />
+
+          <label for="p">% de uso privativo</label>
+          <input id="p" type="text" value="40 %" data-type="pct" />
+
+          <label for="V">Valor de mercado del vehículo para AEAT (€)
+            <span class="hi" data-tip="Valor de mercado como si fuera nuevo. La AEAT toma el 20% anual de este valor.">i</span>
+          </label>
+          <input id="V" type="text" value="30000 €" data-type="eur" />
+
+          <label for="ecoRed">Reducción eficiencia (art. 48 bis RIRPF)
+            <span class="hi" data-tip="Si corresponde por Euro 6/GLP/GN/BEV/PHEV, aplica aquí el % de reducción. La norma exige además límites de precio sin impuestos; ver manual AEAT.">i</span>
+          </label>
+          <select id="ecoRed" aria-label="Reducción por eficiencia energética">
+            <option value="0">Sin reducción (0%)</option>
+            <option value="0.15">15% · Euro 6, ≤120 g CO₂ y ≤25.000 € sin impuestos</option>
+            <option value="0.20">20% · Euro 6 + híbrido/GLP/GN, ≤35.000 € sin impuestos</option>
+            <option value="0.30">30% · BEV/E-REV/PHEV (≥15 km), ≤40.000 € sin impuestos</option>
+          </select>
+
+          <div class="grid" style="margin-top:var(--control-gap)">
+            <div class="span-6">
+              <label for="tFlex">Tipo IRPF (flex) (%) <span class="hi" data-tip="Puedes usar un tipo más bajo si el sacrificio reduce tu marginal efectivo. Por defecto replica el marginal general.">i</span></label>
+              <input id="tFlex" type="text" value="25 %" data-type="pct" />
+            </div>
+            <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
+              <input id="sameAsMarginal" type="checkbox" checked aria-describedby="samelabel">
+              <label id="samelabel" for="sameAsMarginal" style="margin:0;">Igual que el tipo marginal</label>
+            </div>
+          </div>
+
+          <label for="ingresoCuentaSel">Ingreso a cuenta de la especie</label>
+          <select id="ingresoCuentaSel" aria-label="Ingreso a cuenta">
+            <option value="repercutido">Repercutido al trabajador</option>
+            <option value="norepercutido">No repercutido (lo asume la empresa)</option>
+          </select>
+
+          <p class="overline">KPI</p>
+          <p class="kpi t-numeral" id="kpiRenting">&mdash;</p>
+
+          <details>
+            <summary>Resumen fiscal</summary>
+            <table><tbody id="tablaRentingResumen"></tbody></table>
+          </details>
+
+          <details>
+            <summary>Detalle de retenciones</summary>
+            <table><tbody id="tablaRentingDetalle"></tbody></table>
+          </details>
+        </div>
+      </main>
+
+      <!-- ASIDE: resultado comparativo + NotebookLM + AEAT -->
+      <aside class="aside-sticky">
+        <div class="card">
+          <h3 class="t-title">Resultado</h3>
+
+          <table class="table-compact" style="margin-top:4px">
+            <tbody id="tablaResumen">
+              <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
+              <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
+              <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
+              <tr class="emph-row">
+                <td>Diferencia vs compra · Repercutido</td>
+                <td style="text-align:right" id="dRep">—</td>
+              </tr>
+              <tr class="emph-row">
+                <td>Diferencia vs compra · No repercutido</td>
+                <td style="text-align:right" id="dNoRep">—</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Enlace NotebookLM visible -->
+          <div style="margin:16px 0; text-align:center">
+            <a href="https://notebooklm.google.com/notebook/64643cca-c6ac-43ac-9c79-a8525b5cb14b"
+               target="_blank" rel="noopener noreferrer" aria-label="Abrir NotebookLM con documentación del caso"
+               style="display:inline-block; background:var(--ufv-blue-700); color:#fff;
+                      padding:10px 16px; border-radius:8px; font-weight:700; text-decoration:none;
+                      box-shadow:var(--shadow); transition:background .2s">
+              💬 Pregunta sobre la ley
+            </a>
+          </div>
+
+          <details style="margin-top:14px">
+            <summary>Referencia AEAT y resumen</summary>
+            <div style="margin-top:10px; font-size:13px; color:#334155">
+              <p style="margin:6px 0 10px">
+                <a href="https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2024/c03-rendimientos-trabajo/rendimientos-trabajo-especie/computo-rendimientos-trabajo-especie/reglas-especiales/entrega-utilizacion-vehiculos-automoviles.html"
+                  target="_blank" rel="noopener noreferrer">
+                  Página oficial · AEAT · Entrega o utilización de vehículos automóviles
+                </a>
+              </p>
+              <ul style="margin:0 0 10px 18px; padding:0; line-height:1.45">
+                <li><strong>Entrega</strong>: coste de adquisición para el empleador + impuestos y gastos.</li>
+                <li><strong>Utilización</strong>:
+                  <ul style="margin:4px 0 0 16px">
+                    <li>Propiedad empresa: 20% anual × coste de adquisición.</li>
+                    <li>No propiedad: 20% anual × valor de mercado (vehículo nuevo).</li>
+                    <li><em>Incluye</em>: seguros, IVTM, mantenimiento. <em>No</em> incluye combustible.</li>
+                    <li>Uso mixto: imputar por <strong>disponibilidad para uso particular</strong> (% privado).</li>
+                  </ul>
+                </li>
+                <li><strong>Reducciones eco (art. 48 bis RIRPF)</strong>: −15% / −20% / −30% según categoría y límites de precio sin impuestos.</li>
+                <li><strong>Utilización y posterior entrega</strong>: entrega = VM en fecha − 20% anual ya imputado.</li>
+                <li><strong>Ingreso a cuenta</strong>: si no se repercute, se suma para calcular el rendimiento íntegro.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+      </aside>
+
+    </div>
 
     <footer class="site-footer">Sergio Travieso · UFV · 2025</footer>
   </div>
 
-<script>
-/* Helpers formato/parseo */
-const fmtEur = v => new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
-const fmtPct = v => new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(v) + ' %';
+  <script>
+    /* ===== Helpers formato/parseo ===== */
+    const fmtEur = v => new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
+    const fmtPct = v => new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(v) + ' %';
 
-function parseLocaleNumber(input){
-  if(typeof input !== 'string') input = String(input ?? '');
-  let s = input.trim(); if(!s) return 0;
-  const neg = /^-/.test(s) ? -1 : 1;
-  s = s.replace(/[^0-9.,]/g,''); if(!s) return 0;
-  const lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.'); const decPos = Math.max(lastComma,lastDot);
-  if(decPos >= 0){
-    const intPart = s.slice(0, decPos).replace(/[.,]/g,'');
-    const fracPart = s.slice(decPos+1).replace(/[.,]/g,'');
-    return neg * parseFloat((intPart || '0') + '.' + (fracPart || '0'));
-  }
-  return neg * parseFloat(s.replace(/[.,]/g,''));
-}
-function getNum(id){ return parseLocaleNumber(document.getElementById(id).value); }
-function getSelNum(id){ return Number(document.getElementById(id).value) || 0; }
-function formatInput(el){
-  const t = el.dataset.type; const num = getNum(el.id);
-  if(t==='eur') el.value = fmtEur(num);
-  else if(t==='pct') el.value = fmtPct(num);
-  else el.value = new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(num);
-}
-function unformatOnFocus(el){
-  const val = getNum(el.id);
-  if(el.dataset.type==='pct'){ el.value = String(val).replace('.',','); }
-  else { el.value = String(val); }
-}
-function paintDeltaCell(td, value){
-  td.classList.remove('good','bad','neu');
-  if(value>0) td.classList.add('good'); else if(value<0) td.classList.add('bad'); else td.classList.add('neu');
-  td.textContent = (value>=0?'+':'') + fmtEur(value);
-}
+    function parseLocaleNumber(input){
+      if(typeof input !== 'string') input = String(input ?? '');
+      let s = input.trim(); if(!s) return 0;
+      const neg = /^-/.test(s) ? -1 : 1;
+      s = s.replace(/[^0-9.,]/g,''); if(!s) return 0;
+      const lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.'); const decPos = Math.max(lastComma,lastDot);
+      if(decPos >= 0){
+        const intPart = s.slice(0, decPos).replace(/[.,]/g,'');
+        const fracPart = s.slice(decPos+1).replace(/[.,]/g,'');
+        return neg * parseFloat((intPart || '0') + '.' + (fracPart || '0'));
+      }
+      return neg * parseFloat(s.replace(/[.,]/g,''));
+    }
+    function getNum(id){ return parseLocaleNumber(document.getElementById(id).value); }
+    function getSelNum(id){ return Number(document.getElementById(id).value) || 0; }
+    function formatInput(el){
+      const t = el.dataset.type; const num = getNum(el.id);
+      if(t==='eur') el.value = fmtEur(num);
+      else if(t==='pct') el.value = fmtPct(num);
+      else el.value = new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(num);
+    }
+    function unformatOnFocus(el){
+      const val = getNum(el.id);
+      if(el.dataset.type==='pct'){ el.value = String(val).replace('.',','); }
+      else { el.value = String(val); }
+    }
+    function paintDeltaCell(td, value){
+      td.classList.remove('good','bad','neu');
+      if(value>0) td.classList.add('good'); else if(value<0) td.classList.add('bad'); else td.classList.add('neu');
+      td.textContent = (value>=0?'+':'') + fmtEur(value);
+    }
 
-/* Cálculo principal */
-function calc(){
-  const B = getNum('B');
-  const t = getNum('t')/100;
-  const costeCompraMensual = getNum('costeCompraMensual');
+    /* ===== Cálculo principal ===== */
+    function calc(){
+      const B = getNum('B');
+      const t = getNum('t')/100;
+      const costeCompraMensual = getNum('costeCompraMensual');
 
-  const Cmens = getNum('Cmensual');
-  const p = getNum('p')/100;
-  const V = getNum('V');
-  const ecoRed = getSelNum('ecoRed'); // 0, 0.15, 0.20, 0.30
-  const tFlex = getNum('tFlex')/100;
-  const ingresoCuentaSel = document.getElementById('ingresoCuentaSel').value; // 'repercutido' | 'norepercutido'
+      const Cmens = getNum('Cmensual');
+      const p = getNum('p')/100;
+      const V = getNum('V');
+      const ecoRed = getSelNum('ecoRed'); // 0, 0.15, 0.20, 0.30
+      const tFlex = getNum('tFlex')/100;
+      const ingresoCuentaSel = document.getElementById('ingresoCuentaSel').value; // 'repercutido' | 'norepercutido'
 
-  // Compra
-  const netoSinCoche = B*(1-t);
-  const costeCompraAnual = costeCompraMensual*12;
-  const netoCompra = netoSinCoche - costeCompraAnual;
-  document.getElementById('kpiCompra').textContent = fmtEur(netoCompra);
-  document.getElementById('tablaCompra').innerHTML = `
-    <tr><td>Bruto anual</td><td>${fmtEur(B)}</td></tr>
-    <tr><td>IRPF (marginal)</td><td>− ${fmtEur(B*t)}</td></tr>
-    <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
-    <tr><td>Coste anual coche</td><td>− ${fmtEur(costeCompraAnual)}</td></tr>
-    <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoCompra)}</strong></td></tr>
-  `;
+      /* Compra */
+      const netoSinCoche = B*(1-t);
+      const costeCompraAnual = costeCompraMensual*12;
+      const netoCompra = netoSinCoche - costeCompraAnual;
 
-  // Renting (flex) — parámetros comunes
-  const Canual = Cmens*12;
-  const valoracionBase20 = 0.20*V;                 // antes de reducción
-  const valoracionAnual = valoracionBase20 * (1 - ecoRed); // tras reducción art. 48 bis
-  const especie = valoracionAnual * p;            // imputable por % privado
-  const brutoReducido = B - Canual;
+      // KPI + Resumen + Detalle
+      document.getElementById('kpiCompra').textContent = fmtEur(netoCompra);
+      document.getElementById('tablaCompraResumen').innerHTML = `
+        <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
+        <tr><td>Coste anual coche</td><td>− ${fmtEur(costeCompraAnual)}</td></tr>
+        <tr class="emph-row"><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoCompra)}</strong></td></tr>
+      `;
+      document.getElementById('tablaCompraDetalle').innerHTML = `
+        <tr><td>Bruto anual</td><td>${fmtEur(B)}</td></tr>
+        <tr><td>IRPF (marginal)</td><td>− ${fmtEur(B*t)}</td></tr>
+        <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
+        <tr><td>Coste anual coche</td><td>− ${fmtEur(costeCompraAnual)}</td></tr>
+        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoCompra)}</strong></td></tr>
+      `;
 
-  // Escenario A: ingreso a cuenta RE PERCUTIDO
-  const baseIRPF_A = brutoReducido + especie;
-  const irpf_A = baseIRPF_A * tFlex;
-  const netoFlex_A = brutoReducido - irpf_A;
+      /* Renting (flex) — comunes */
+      const Canual = Cmens*12;
+      const valoracionBase20 = 0.20*V;                          // antes de reducción
+      const valoracionAnual = valoracionBase20 * (1 - ecoRed);  // tras reducción art. 48 bis
+      const especie = valoracionAnual * p;                      // imputable por % privado
+      const brutoReducido = B - Canual;
 
-  // Escenario B: ingreso a cuenta NO RE PERCUTIDO (lo asume la empresa)
-  const G = especie * tFlex / (1 - tFlex);        // brutalización
-  const baseIRPF_B = brutoReducido + especie + G;
-  const retencionTotal_B = baseIRPF_B * tFlex;
-  const irpfDesdeNomina_B = retencionTotal_B - G;
-  const netoFlex_B = brutoReducido - irpfDesdeNomina_B;
+      // A) Ingreso a cuenta repercutido
+      const baseIRPF_A = brutoReducido + especie;
+      const irpf_A = baseIRPF_A * tFlex;
+      const netoFlex_A = brutoReducido - irpf_A;
 
-  // Mostrar desglose de renting según selección
-  const desglose = (ingresoCuentaSel === 'norepercutido')
-    ? `
-      <tr><td class="hint">Cuota renting anual <span class="hi" data-tip="Cuota mensual × 12. Sacrificio salarial antes de IRPF.">i</span></td><td>− ${fmtEur(Canual)}</td></tr>
-      <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
-      <tr><td class="hint">Valoración anual (20% × V) <span class="hi" data-tip="Valoración estándar AEAT sobre vehículo nuevo.">i</span></td><td>${fmtEur(valoracionBase20)}</td></tr>
-      <tr><td>Reducción eficiencia aplicada</td><td>${new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(ecoRed*100)} %</td></tr>
-      <tr><td>Base tras reducción</td><td>${fmtEur(valoracionAnual)}</td></tr>
-      <tr><td class="hint">Especie imputable (% uso) <span class="hi" data-tip="Valoración tras reducción × % uso privativo.">i</span></td><td>${fmtEur(especie)}</td></tr>
-      <tr><td class="hint">Ingreso a cuenta (empresa) <span class="hi" data-tip="G = especie × t / (1 − t). Lo ingresa la empresa como pago a cuenta de tu IRPF.">i</span></td><td>${fmtEur(G)}</td></tr>
-      <tr><td>Base IRPF (teórica)</td><td>${fmtEur(baseIRPF_B)}</td></tr>
-      <tr><td>Retención total teórica</td><td>${fmtEur(retencionTotal_B)}</td></tr>
-      <tr><td>Retención desde nómina</td><td>− ${fmtEur(irpfDesdeNomina_B)}</td></tr>
-      <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_B)}</strong></td></tr>
-    `
-    : `
-      <tr><td class="hint">Cuota renting anual <span class="hi" data-tip="Cuota mensual × 12. Sacrificio salarial antes de IRPF.">i</span></td><td>− ${fmtEur(Canual)}</td></tr>
-      <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
-      <tr><td class="hint">Valoración anual (20% × V) <span class="hi" data-tip="Valoración estándar AEAT sobre vehículo nuevo.">i</span></td><td>${fmtEur(valoracionBase20)}</td></tr>
-      <tr><td>Reducción eficiencia aplicada</td><td>${new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(ecoRed*100)} %</td></tr>
-      <tr><td>Base tras reducción</td><td>${fmtEur(valoracionAnual)}</td></tr>
-      <tr><td class="hint">Especie imputable (% uso) <span class="hi" data-tip="Valoración tras reducción × % uso privativo.">i</span></td><td>${fmtEur(especie)}</td></tr>
-      <tr><td>Base IRPF</td><td>${fmtEur(baseIRPF_A)}</td></tr>
-      <tr><td>IRPF (flex)</td><td>− ${fmtEur(irpf_A)}</td></tr>
-      <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_A)}</strong></td></tr>
-    `;
-  const netoRentingMostrar = (ingresoCuentaSel === 'norepercutido') ? netoFlex_B : netoFlex_A;
-  document.getElementById('kpiRenting').textContent = fmtEur(netoRentingMostrar);
-  document.getElementById('tablaRenting').innerHTML = desglose;
+      // B) Ingreso a cuenta no repercutido (lo asume la empresa)
+      const G = especie * tFlex / (1 - tFlex);        // brutalización
+      const baseIRPF_B = brutoReducido + especie + G;
+      const retencionTotal_B = baseIRPF_B * tFlex;
+      const irpfDesdeNomina_B = retencionTotal_B - G;
+      const netoFlex_B = brutoReducido - irpfDesdeNomina_B;
 
-  // Resultado comparativo (tres opciones)
-  document.getElementById('rCompra').textContent = fmtEur(netoCompra);
-  document.getElementById('rFlexRep').textContent = fmtEur(netoFlex_A);
-  document.getElementById('rFlexNoRep').textContent = fmtEur(netoFlex_B);
+      // KPI renting
+      const netoRentingMostrar = (ingresoCuentaSel === 'norepercutido') ? netoFlex_B : netoFlex_A;
+      document.getElementById('kpiRenting').textContent = fmtEur(netoRentingMostrar);
 
-  const dRep = netoFlex_A - netoCompra;
-  const dNoRep = netoFlex_B - netoCompra;
-  paintDeltaCell(document.getElementById('dRep'), dRep);
-  paintDeltaCell(document.getElementById('dNoRep'), dNoRep);
-}
+      // Resumen fiscal renting
+      document.getElementById('tablaRentingResumen').innerHTML = `
+        <tr><td class="hint">Cuota renting anual <span class="hi" data-tip="Cuota mensual × 12. Sacrificio salarial antes de IRPF.">i</span></td><td>− ${fmtEur(Canual)}</td></tr>
+        <tr><td class="hint">Valoración anual (20% × V) <span class="hi" data-tip="Valoración estándar AEAT sobre vehículo nuevo.">i</span></td><td>${fmtEur(valoracionBase20)}</td></tr>
+        <tr><td>Reducción eficiencia aplicada</td><td>${new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(ecoRed*100)} %</td></tr>
+        <tr><td>Base tras reducción</td><td>${fmtEur(valoracionAnual)}</td></tr>
+        <tr><td class="hint">Especie imputable (% uso) <span class="hi" data-tip="Valoración tras reducción × % uso privativo.">i</span></td><td>${fmtEur(especie)}</td></tr>
+        <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(netoRentingMostrar)}</strong></td></tr>
+      `;
 
-/* Eventos y tests */
-const inputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex'];
-inputs.forEach(id=>{
-  const el = document.getElementById(id);
-  el.addEventListener('input', calc);
-  el.addEventListener('blur', ()=>{ formatInput(el); calc(); });
-  el.addEventListener('focus', ()=>{ unformatOnFocus(el); });
-});
-['ecoRed','ingresoCuentaSel'].forEach(id=>document.getElementById(id).addEventListener('change', calc));
+      // Detalle de retenciones renting
+      const detalleRepercutido = `
+        <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
+        <tr><td>Base IRPF</td><td>${fmtEur(baseIRPF_A)}</td></tr>
+        <tr><td>IRPF (flex)</td><td>− ${fmtEur(irpf_A)}</td></tr>
+        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_A)}</strong></td></tr>
+      `;
+      const detalleNoRepercutido = `
+        <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
+        <tr><td class="hint">Ingreso a cuenta (empresa) <span class="hi" data-tip="G = especie × t / (1 − t). Lo ingresa la empresa como pago a cuenta de tu IRPF.">i</span></td><td>${fmtEur(G)}</td></tr>
+        <tr><td>Base IRPF (teórica)</td><td>${fmtEur(baseIRPF_B)}</td></tr>
+        <tr><td>Retención total teórica</td><td>${fmtEur(retencionTotal_B)}</td></tr>
+        <tr><td>Retención desde nómina</td><td>− ${fmtEur(irpfDesdeNomina_B)}</td></tr>
+        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_B)}</strong></td></tr>
+      `;
+      document.getElementById('tablaRentingDetalle').innerHTML =
+        (ingresoCuentaSel === 'norepercutido') ? detalleNoRepercutido : detalleRepercutido;
 
-const same = document.getElementById('sameAsMarginal');
-const tInput = document.getElementById('t');
-const tFlexInput = document.getElementById('tFlex');
-same.addEventListener('change', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput);} calc(); });
-tInput.addEventListener('input', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; calc(); } });
+      // Resultado comparativo (tres opciones)
+      document.getElementById('rCompra').textContent = fmtEur(netoCompra);
+      document.getElementById('rFlexRep').textContent = fmtEur(netoFlex_A);
+      document.getElementById('rFlexNoRep').textContent = fmtEur(netoFlex_B);
 
-inputs.forEach(id=>formatInput(document.getElementById(id)));
-calc();
+      const dRep = netoFlex_A - netoCompra;
+      const dNoRep = netoFlex_B - netoCompra;
+      paintDeltaCell(document.getElementById('dRep'), dRep);
+      paintDeltaCell(document.getElementById('dNoRep'), dNoRep);
+    }
 
-/* Tests rápidos (cifras base del ejemplo) */
-function almostEqual(a,b,eps=0.6){ return Math.abs(a-b) <= eps; }
-(function runTests(){
-  const out=[];
-  const B=40000, t=0.25, C=620, p=0.40, V=30000, coste=590, tFlex=0.25;
-  const netCompra = B*(1-t) - coste*12;                 // 22.920
-  const Canual=C*12, especie=(0.20*V)*p;                // 2.400
-  const netFlexRep = (B-Canual) - tFlex*((B-Canual)+especie); // 23.820
-  const G = especie*tFlex/(1-tFlex);                     // 800
-  const retTot = tFlex*((B-Canual)+especie+G);
-  const netFlexNoRep = (B-Canual) - (retTot - G);        // 24.420
-  out.push(`Compra=${fmtEur(netCompra)} ${almostEqual(netCompra,22920)?'OK':'FALLO'}`);
-  out.push(`Flex repercutido=${fmtEur(netFlexRep)} ${almostEqual(netFlexRep,23820)?'OK':'FALLO'}`);
-  out.push(`Flex NO repercutido=${fmtEur(netFlexNoRep)} ${almostEqual(netFlexNoRep,24420)?'OK':'FALLO'}`);
-  document.getElementById('testsOut').innerHTML = out.map(x=>`<div>${x}</div>`).join('');
-})();
-</script>
+    /* ===== Eventos ===== */
+    const inputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex'];
+    inputs.forEach(id=>{
+      const el = document.getElementById(id);
+      el.addEventListener('input', calc);
+      el.addEventListener('blur', ()=>{ formatInput(el); calc(); });
+      el.addEventListener('focus', ()=>{ unformatOnFocus(el); });
+    });
+    ['ecoRed','ingresoCuentaSel'].forEach(id=>document.getElementById(id).addEventListener('change', calc));
+
+    // Sincronizar tipo flex con marginal
+    const same = document.getElementById('sameAsMarginal');
+    const tInput = document.getElementById('t');
+    const tFlexInput = document.getElementById('tFlex');
+    same.addEventListener('change', ()=>{
+      if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput); }
+      calc();
+    });
+    tInput.addEventListener('input', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; calc(); } });
+
+    // Controles de vista
+    document.getElementById('toggleDensity').addEventListener('change', (e)=>{
+      document.body.classList.toggle('compact', e.target.checked);
+    });
+
+
+    // Inicialización
+    inputs.forEach(id=>formatInput(document.getElementById(id)));
+    calc();
+  </script>
 </body>
 </html>
