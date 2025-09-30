@@ -165,54 +165,63 @@
         </div>
       </main>
 
-      <!-- ASIDE: resultado comparativo + panel AEAT -->
-      <aside class="aside-sticky">
-        <div class="card">
-          <h3 class="t-title">Resultado</h3>
+      <div class="card">
+        <h3 class="t-title">Resultado</h3>
 
-          <table class="table-compact" style="margin-top:4px">
-            <tbody id="tablaResumen">
-              <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
-              <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
-              <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
-              <tr class="emph-row">
-                <td>Diferencia vs compra · Repercutido</td>
-                <td style="text-align:right" id="dRep">—</td>
-              </tr>
-              <tr class="emph-row">
-                <td>Diferencia vs compra · No repercutido</td>
-                <td style="text-align:right" id="dNoRep">—</td>
-              </tr>
-            </tbody>
-          </table>
+        <table class="table-compact" style="margin-top:4px">
+          <tbody id="tablaResumen">
+            <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
+            <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
+            <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
+            <tr class="emph-row">
+              <td>Diferencia vs compra · Repercutido</td>
+              <td style="text-align:right" id="dRep">—</td>
+            </tr>
+            <tr class="emph-row">
+              <td>Diferencia vs compra · No repercutido</td>
+              <td style="text-align:right" id="dNoRep">—</td>
+            </tr>
+          </tbody>
+        </table>
 
-          <details style="margin-top:14px">
-            <summary style="cursor:pointer; font-weight:700; color:var(--ufv-blue-900)">Referencia AEAT y resumen</summary>
-            <div style="margin-top:10px; font-size:13px; color:#334155">
-              <p style="margin:6px 0 10px">
-                <a href="https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2024/c03-rendimientos-trabajo/rendimientos-trabajo-especie/computo-rendimientos-trabajo-especie/reglas-especiales/entrega-utilizacion-vehiculos-automoviles.html" target="_blank" rel="noopener noreferrer">
-                  Página oficial · AEAT · Entrega o utilización de vehículos automóviles
-                </a>
-              </p>
-              <ul style="margin:0 0 10px 18px; padding:0; line-height:1.45">
-                <li><strong>Entrega</strong>: coste de adquisición para el empleador + impuestos y gastos.</li>
-                <li><strong>Utilización</strong>:
-                  <ul style="margin:4px 0 0 16px">
-                    <li>Propiedad empresa: 20% anual × coste de adquisición.</li>
-                    <li>No propiedad: 20% anual × valor de mercado (vehículo nuevo).</li>
-                    <li><em>Incluye</em>: seguros, IVTM, mantenimiento. <em>No</em> incluye combustible.</li>
-                    <li>Uso mixto: imputar por <strong>disponibilidad para uso particular</strong> (% privado).</li>
-                  </ul>
-                </li>
-                <li><strong>Reducciones eco (art. 48 bis RIRPF)</strong>: −15% / −20% / −30% según categoría y límites de precio sin impuestos.</li>
-                <li><strong>Utilización y posterior entrega</strong>: entrega = VM en fecha − 20% anual ya imputado.</li>
-                <li><strong>Ingreso a cuenta</strong>: si no se repercute, se suma para calcular el rendimiento íntegro.</li>
-              </ul>
-            </div>
-          </details>
+        <!-- Enlace NotebookLM visible -->
+        <div style="margin:16px 0; text-align:center">
+          <a href="https://notebooklm.google.com/notebook/64643cca-c6ac-43ac-9c79-a8525b5cb14b" 
+            target="_blank" rel="noopener noreferrer"
+            style="display:inline-block; background:var(--ufv-blue-700); color:#fff; 
+                    padding:10px 16px; border-radius:8px; font-weight:700; text-decoration:none;
+                    box-shadow:var(--shadow); transition:background .2s">
+            💬 Pregunta sobre la ley
+          </a>
         </div>
-      </aside>
-    </div>
+
+        <details style="margin-top:14px">
+          <summary style="cursor:pointer; font-weight:700; color:var(--ufv-blue-900)">Referencia AEAT y resumen</summary>
+          <div style="margin-top:10px; font-size:13px; color:#334155">
+            <p style="margin:6px 0 10px">
+              <a href="https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2024/c03-rendimientos-trabajo/rendimientos-trabajo-especie/computo-rendimientos-trabajo-especie/reglas-especiales/entrega-utilizacion-vehiculos-automoviles.html" 
+                target="_blank" rel="noopener noreferrer">
+                Página oficial · AEAT · Entrega o utilización de vehículos automóviles
+              </a>
+            </p>
+            <ul style="margin:0 0 10px 18px; padding:0; line-height:1.45">
+              <li><strong>Entrega</strong>: coste de adquisición para el empleador + impuestos y gastos.</li>
+              <li><strong>Utilización</strong>:
+                <ul style="margin:4px 0 0 16px">
+                  <li>Propiedad empresa: 20% anual × coste de adquisición.</li>
+                  <li>No propiedad: 20% anual × valor de mercado (vehículo nuevo).</li>
+                  <li><em>Incluye</em>: seguros, IVTM, mantenimiento. <em>No</em> incluye combustible.</li>
+                  <li>Uso mixto: imputar por <strong>disponibilidad para uso particular</strong> (% privado).</li>
+                </ul>
+              </li>
+              <li><strong>Reducciones eco (art. 48 bis RIRPF)</strong>: −15% / −20% / −30% según categoría y límites de precio sin impuestos.</li>
+              <li><strong>Utilización y posterior entrega</strong>: entrega = VM en fecha − 20% anual ya imputado.</li>
+              <li><strong>Ingreso a cuenta</strong>: si no se repercute, se suma para calcular el rendimiento íntegro.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+
 
     <footer class="site-footer">Sergio Travieso · UFV · 2025</footer>
   </div>
