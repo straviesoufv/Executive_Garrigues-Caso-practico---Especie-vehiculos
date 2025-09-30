@@ -67,12 +67,12 @@
     h3{margin:0 0 10px;font-size:18px;color:var(--ufv-blue-900)}
     label{display:block;font-size:13px;color:var(--ufv-ink-muted);margin:8px 0 6px}
 
-    input{
+    input, select{
       width:100%;box-sizing:border-box;background:#fff;color:var(--ufv-ink);
       border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;
       outline:none;transition:border .15s, box-shadow .15s
     }
-    input:focus{
+    input:focus, select:focus{
       border-color:var(--ufv-blue-600);
       box-shadow:0 0 0 3px color-mix(in srgb, var(--ufv-blue-600) 20%, transparent);
     }
@@ -104,11 +104,8 @@
     .hi:hover::before{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:124%;border:7px solid transparent;border-top-color:var(--line)}
 
     /* ================== LAYOUT LATERAL ================== */
-    .layout{
-      display:grid;grid-template-columns: 1fr 392px;gap:18px;align-items:start
-    }
+    .layout{display:grid;grid-template-columns: 1fr 392px;gap:18px;align-items:start}
     .aside-sticky{position:sticky;top:16px}
-    /* En móvil/tablet, 1 columna */
     @media (max-width:1024px){
       .layout{grid-template-columns: 1fr}
       .aside-sticky{position:static}
@@ -144,7 +141,6 @@
 
   <!-- Contenido -->
   <div class="wrap">
-    <!-- ===== LAYOUT LATERAL: MAIN + ASIDE ===== -->
     <div class="layout">
 
       <!-- MAIN: inputs y desgloses -->
@@ -180,13 +176,32 @@
             <h3 class="t-title">Renting vía retribución flexible</h3>
             <label>Cuota renting mensual (€)</label>
             <input id="Cmensual" type="text" value="620 €" data-type="eur" />
+
             <label>% de uso privativo</label>
             <input id="p" type="text" value="40 %" data-type="pct" />
-            <label>Valor de mercado del vehículo (€)</label>
-            <input id="V" type="text" value="35400 €" data-type="eur" />
+
+            <label>Valor de mercado del vehículo para AEAT (€)
+              <span class="hi" data-tip="Valor de mercado como si fuera nuevo. La AEAT toma el 20% anual de este valor.">
+                i
+              </span>
+            </label>
+            <input id="V" type="text" value="30000 €" data-type="eur" />
+
+            <label>Reducción eficiencia (art. 48 bis RIRPF)
+              <span class="hi" data-tip="Si corresponde por Euro 6/GLP/GN/BEV/PHEV, aplica aquí el % de reducción. La norma exige además límites de precio sin impuestos; ver manual AEAT.">
+                i
+              </span>
+            </label>
+            <select id="ecoRed">
+              <option value="0">Sin reducción (0%)</option>
+              <option value="0.15">15% · Euro 6, ≤120 g CO₂ y ≤25.000 € sin impuestos</option>
+              <option value="0.20">20% · Euro 6 + híbrido/GLP/GN, ≤35.000 € sin impuestos</option>
+              <option value="0.30">30% · BEV/E-REV/PHEV (≥15 km), ≤40.000 € sin impuestos</option>
+            </select>
+
             <div class="grid" style="margin-top:6px">
               <div class="span-6">
-                <label>Tipo IRPF (flex) (%) <span class="hi" data-tip="Puedes usar un tipo más bajo si el sacrificio reduce tu marginal efectivo. Por defecto replica el tipo marginal general.">i</span></label>
+                <label>Tipo IRPF (flex) (%) <span class="hi" data-tip="Puedes usar un tipo más bajo si el sacrificio reduce tu marginal efectivo. Por defecto replica el marginal general.">i</span></label>
                 <input id="tFlex" type="text" value="25 %" data-type="pct" />
               </div>
               <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
@@ -208,27 +223,57 @@
         </div>
       </main>
 
-      <!-- ASIDE: resultado fijo a la derecha -->
-      <aside class="aside-sticky">
-        <div class="card">
-          <h3 class="t-title">Resultado</h3>
-          <div class="grid">
-            <div class="span-12">
-              <label>Neto compra</label>
-              <p class="kpi t-numeral" id="netCompra">&mdash;</p>
-            </div>
-            <div class="span-12">
-              <label>Neto renting</label>
-              <p class="kpi t-numeral" id="netRenting">&mdash;</p>
-            </div>
-            <div class="span-12">
-              <label>Diferencia (renting − compra)</label>
-              <p class="result t-numeral" id="difAbs">&mdash;</p>
-              <span id="difPct" class="pill">&mdash;</span>
-            </div>
+    <!-- ASIDE: resultado fijo a la derecha -->
+    <aside class="aside-sticky">
+      <div class="card">
+        <h3 class="t-title">Resultado</h3>
+        <div class="grid">
+          <div class="span-12">
+            <label>Neto compra</label>
+            <p class="kpi t-numeral" id="netCompra">&mdash;</p>
+          </div>
+          <div class="span-12">
+            <label>Neto renting</label>
+            <p class="kpi t-numeral" id="netRenting">&mdash;</p>
+          </div>
+          <div class="span-12">
+            <label>Diferencia (renting − compra)</label>
+            <p class="result t-numeral" id="difAbs">&mdash;</p>
+            <span id="difPct" class="pill">&mdash;</span>
           </div>
         </div>
-      </aside>
+
+        <!-- Panel AEAT -->
+        <details style="margin-top:14px">
+          <summary style="cursor:pointer; font-weight:700; color:var(--ufv-blue-900)">
+            Referencia AEAT y resumen
+          </summary>
+          <div style="margin-top:10px; font-size:13px; color:#334155">
+            <p style="margin:6px 0 10px">
+              <a href="https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/irpf-2024/c03-rendimientos-trabajo/rendimientos-trabajo-especie/computo-rendimientos-trabajo-especie/reglas-especiales/entrega-utilizacion-vehiculos-automoviles.html"
+                target="_blank" rel="noopener noreferrer">
+                Página oficial · AEAT · Entrega o utilización de vehículos automóviles
+              </a>
+            </p>
+            <ul style="margin:0 0 10px 18px; padding:0; line-height:1.45">
+              <li><strong>Entrega</strong>: coste de adquisición para el empleador + impuestos y gastos.</li>
+              <li><strong>Utilización</strong>:
+                <ul style="margin:4px 0 0 16px">
+                  <li>Propiedad empresa: 20% anual × coste de adquisición.</li>
+                  <li>No propiedad: 20% anual × valor de mercado (vehículo nuevo).</li>
+                  <li><em>Incluye</em>: seguros, IVTM, mantenimiento. <em>No</em> incluye combustible (especie separada).</li>
+                  <li>Uso mixto: se imputa por <strong>disponibilidad para uso particular</strong> (% privado).</li>
+                </ul>
+              </li>
+              <li><strong>Reducciones eco (art. 48 bis RIRPF)</strong>: −15% / −20% / −30% según categoría y límites de precio sin impuestos.</li>
+              <li><strong>Utilización y posterior entrega</strong>: entrega = valor de mercado en la fecha − 20% anual ya imputado por los años de uso.</li>
+              <li><strong>Ingreso a cuenta</strong>: si no se repercute al trabajador, se suma para calcular el rendimiento íntegro.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </aside>
+
 
     </div>
 
@@ -251,7 +296,7 @@ function parseLocaleNumber(input){
   if(!s) return 0;
   const lastComma = s.lastIndexOf(',');
   const lastDot = s.lastIndexOf('.');
-  let decPos = Math.max(lastComma, lastDot);
+  const decPos = Math.max(lastComma, lastDot);
   if(decPos >= 0){
     const intPart = s.slice(0, decPos).replace(/[.,]/g,'');
     const fracPart = s.slice(decPos+1).replace(/[.,]/g,'');
@@ -260,6 +305,8 @@ function parseLocaleNumber(input){
   return neg * parseFloat(s.replace(/[.,]/g,''));
 }
 function getNum(id){ return parseLocaleNumber(document.getElementById(id).value); }
+function getSelNum(id){ return Number(document.getElementById(id).value) || 0; }
+
 function formatInput(el){
   const t = el.dataset.type;
   const num = getNum(el.id);
@@ -285,9 +332,11 @@ function calc(){
   const B = getNum('B');
   const t = getNum('t')/100;
   const costeCompraMensual = getNum('costeCompraMensual');
+
   const Cmens = getNum('Cmensual');
   const p = getNum('p')/100;
   const V = getNum('V');
+  const ecoRed = getSelNum('ecoRed'); // 0, 0.15, 0.20, 0.30
   const tFlex = getNum('tFlex')/100;
 
   // Compra
@@ -305,9 +354,12 @@ function calc(){
 
   // Renting (flex)
   const Canual = Cmens*12;
-  const especie = 0.20 * V * p;
-  const brutoReducido = B - Canual;
-  const baseIRPF = brutoReducido + especie;
+  // Especie: 20% × V × (1 − reducción) × % uso privativo
+  const valoracionAnual = 0.20 * V * (1 - ecoRed);
+  const especie = valoracionAnual * p;
+
+  const brutoReducido = B - Canual;                // sacrificio salarial
+  const baseIRPF = brutoReducido + especie;        // especie suma a la base
   const irpf = baseIRPF * tFlex;
   const netoRenting = brutoReducido - irpf;
 
@@ -316,10 +368,13 @@ function calc(){
     <tr><td>Bruto anual</td><td>${fmtEur(B)}</td></tr>
     <tr><td class="hint">Cuota renting anual <span class="hi" data-tip="Cuota mensual × 12. Es el sacrificio salarial que reduce el bruto dinerario antes de IRPF.">i</span></td><td>− ${fmtEur(Canual)}</td></tr>
     <tr><td class="hint">Bruto reducido <span class="hi" data-tip="Bruto dinerario tras flex: B − cuota anual. Para Hacienda, 'cobras menos' en metálico.">i</span></td><td>${fmtEur(brutoReducido)}</td></tr>
-    <tr><td class="hint">Especie <span class="hi" data-tip="Valoración fiscal anual: 20% × valor de mercado del vehículo × % de uso privativo. No se cobra en metálico, pero tributa.">i</span></td><td>${fmtEur(especie)}</td></tr>
-    <tr><td class="hint">Base IRPF <span class="hi" data-tip="La base sobre la que se aplica el IRPF: bruto reducido + especie. La especie se suma como si fuera salario.">i</span></td><td>${fmtEur(baseIRPF)}</td></tr>
-    <tr><td class="hint">IRPF (flex) <span class="hi" data-tip="Tipo aplicado en el escenario de flex. Puedes reducirlo si el sacrificio salarial te baja el marginal efectivo.">i</span></td><td>− ${fmtEur(irpf)}</td></tr>
-    <tr><td class="hint"><strong>Neto disponible</strong> <span class="hi" data-tip="Bruto reducido − IRPF. No se suma la especie porque no es dinero que recibes.">i</span></td><td><strong>${fmtEur(netoRenting)}</strong></td></tr>
+    <tr><td class="hint">Valoración anual (20% × V) <span class="hi" data-tip="Valoración estándar de la AEAT sobre vehículo nuevo. Antes de aplicar reducción ecológica.">i</span></td><td>${fmtEur(0.20*V)}</td></tr>
+    <tr><td class="hint">Reducción eficiencia aplicada <span class="hi" data-tip="Art. 48 bis RIRPF: 0%, 15%, 20% o 30% según categoría y límites.">i</span></td><td>${fmtPct(ecoRed*100)}</td></tr>
+    <tr><td class="hint">Base tras reducción <span class="hi" data-tip="Valoración anual después de la reducción, antes del prorrateo por uso.">i</span></td><td>${fmtEur(valoracionAnual)}</td></tr>
+    <tr><td class="hint">Especie imputable <span class="hi" data-tip="Valoración tras reducción × % uso privativo.">i</span></td><td>${fmtEur(especie)}</td></tr>
+    <tr><td class="hint">Base IRPF <span class="hi" data-tip="Bruto reducido + especie. La especie tributa como si fuera salario.">i</span></td><td>${fmtEur(baseIRPF)}</td></tr>
+    <tr><td class="hint">IRPF (flex)</td><td>− ${fmtEur(irpf)}</td></tr>
+    <tr><td class="hint"><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoRenting)}</strong></td></tr>
   `;
 
   // Resultado final (sidebar)
@@ -342,28 +397,38 @@ inputs.forEach(id=>{
   el.addEventListener('blur', ()=>{ formatInput(el); calc(); });
   el.addEventListener('focus', ()=>{ unformatOnFocus(el); });
 });
+document.getElementById('ecoRed').addEventListener('change', calc);
+
 const same = document.getElementById('sameAsMarginal');
 const tInput = document.getElementById('t');
 const tFlexInput = document.getElementById('tFlex');
-same.addEventListener('change', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput);} calc(); });
+same.addEventListener('change', ()=>{
+  if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput); }
+  calc();
+});
 tInput.addEventListener('input', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; calc(); } });
 
 inputs.forEach(id=>formatInput(document.getElementById(id)));
 calc();
 
+/* Tests rápidos */
 function almostEqual(a,b,eps=0.6){ return Math.abs(a-b) <= eps; }
 (function runTests(){
   const out=[];
+  // Caso base del enunciado: B=40k, t=25%, C=620, p=40%, V=30k, ecoRed=0, coste=590
   {
-    const B=40000, t=0.25, C=620, p=0.40, V=35400, coste=590, tFlex=0.25;
-    const netCompra = B*(1-t) - coste*12;
-    const Canual=C*12, especie=0.2*V*p;
+    const B=40000, t=0.25, C=620, p=0.40, V=30000, coste=590, tFlex=0.25, eco=0;
+    const netCompra = B*(1*t? (1-t):(1-t)) - coste*12; // legible
+    const Canual=C*12, especie=(0.20*V*(1-eco))*p;
     const netFlex = (B-Canual) - tFlex*((B-Canual)+especie);
-    out.push(`Test base → compra=${fmtEur(netCompra)} ${almostEqual(netCompra,22920)?'OK':'FALLO'} · flex=${fmtEur(netFlex)} ${almostEqual(netFlex,23820)?'OK':'FALLO'}`);
+    out.push(`Test base → compra=${fmtEur(netCompra)} ${almostEqual(netCompra,22920)?'OK':'FALLO'} · flex=${fmtEur(netFlex)} ${almostEqual(netFlex,23820)?'OK':'FALLO'} · especie=${fmtEur(especie)} ${almostEqual(especie,2400)?'OK':'FALLO'}`);
   }
+  // Mismo caso con reducción 30% (BEV/PHEV): especie baja a 1.680 €
   {
-    const V=35400, p=0.40; const especie=0.2*V*p;
-    out.push(`Test especie (V=35.4k, 40%) → ${fmtEur(especie)} ${almostEqual(especie,2832)?'OK':'FALLO'}`);
+    const B=40000, t=0.25, C=620, p=0.40, V=30000, tFlex=0.25, eco=0.30;
+    const Canual=C*12, especie=(0.20*V*(1-eco))*p; // 1680
+    const netFlex = (B-Canual) - tFlex*((B-Canual)+especie);
+    out.push(`Test eco30% → especie=${fmtEur(especie)} ${almostEqual(especie,1680)?'OK':'FALLO'} · netFlex=${fmtEur(netFlex)}`);
   }
   document.getElementById('testsOut').innerHTML = out.map(x=>`<div>${x}</div>`).join('');
 })();
