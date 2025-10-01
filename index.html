@@ -152,14 +152,13 @@
     }
 
     /* Acordeón de tarjeta completa */
-    .card details{ border-top:none; padding-top:0; margin-top:0 }
+    .card > details{ border-top:none; padding-top:0; margin-top:0 }
     .card summary{
       margin:-6px -6px var(--space-2);
       padding:8px 6px;
       border-radius:10px;
     }
     .card summary:hover{ background:#f8fafc }
-
 
     /* Fila de resumen enfatizada */
     .emph-row td{ font-weight:800; font-size:16px; background:#f1f5f9; }
@@ -184,13 +183,15 @@
 
       <!-- Controles de vista -->
       <div class="view-controls" aria-label="Preferencias de visualización">
-        <label class="vc-chip" title="Aumenta o reduce espacios y padding">
+<!--         <label class="vc-chip" title="Aumenta o reduce espacios y padding">
           <input id="toggleDensity" type="checkbox"> Densidad compacta
+        </label> -->
+        <label class="vc-chip" title="Aplicar tramos de IRPF en lugar de tipo fijo">
+          <input id="toggleTramos" type="checkbox"> Calcular con tramos
         </label>
         <button id="expandAll" class="vc-chip" type="button" title="Mostrar todos los escenarios">Expandir todo</button>
         <button id="collapseAll" class="vc-chip" type="button" title="Ocultar todos los escenarios">Contraer todo</button>
       </div>
-
     </div>
   </header>
 
@@ -217,7 +218,7 @@
               <input id="B" type="text" value="40000 €" data-type="eur" />
             </div>
             <div class="span-6">
-              <label for="t">Tipo marginal IRPF (%)</label>
+              <label for="t">Tipo marginal IRPF (%) <span class="hi" data-tip="Solo se usa si 'Calcular con tramos' está desactivado.">i</span></label>
               <input id="t" type="text" value="25 %" data-type="pct" />
             </div>
           </div>
@@ -245,7 +246,6 @@
           </details>
         </div>
 
-
         <!-- 2b. Entrega del vehículo en propiedad (debajo de compra) -->
         <div class="card span-6 tight">
           <details>
@@ -271,12 +271,12 @@
 
             <div class="grid" style="margin-top:var(--control-gap)">
               <div class="span-6">
-                <label for="tEnt">Tipo IRPF (entrega) (%)</label>
+                <label for="tEnt">Tipo IRPF (entrega) (%) <span class="hi" data-tip="Solo se usa si 'Calcular con tramos' está desactivado.">i</span></label>
                 <input id="tEnt" type="text" value="25 %" data-type="pct" />
               </div>
               <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
                 <input id="sameAsMarginalEnt" type="checkbox" checked aria-describedby="sameEntLbl">
-                <label id="sameEntLbl" for="sameAsMarginalEnt" style="margin:0;">Igual que el tipo marginal</label>
+                <label id="sameEntLbl" for="sameAsMarginalEnt" style="margin:0;">Igual que el tipo marginal general</label>
               </div>
             </div>
 
@@ -299,7 +299,6 @@
             </details>
           </details>
         </div>
-
 
         <!-- 3. Renting vía flex -->
         <div class="card span-6">
@@ -327,12 +326,12 @@
 
             <div class="grid" style="margin-top:var(--control-gap)">
               <div class="span-6">
-                <label for="tFlex">Tipo IRPF (flex) (%)</label>
+                <label for="tFlex">Tipo IRPF (flex) (%) <span class="hi" data-tip="Solo se usa si 'Calcular con tramos' está desactivado.">i</span></label>
                 <input id="tFlex" type="text" value="25 %" data-type="pct" />
               </div>
               <div class="span-6" style="display:flex;align-items:end;gap:8px;padding-bottom:6px">
                 <input id="sameAsMarginal" type="checkbox" checked aria-describedby="samelabel">
-                <label id="samelabel" for="sameAsMarginal" style="margin:0;">Igual que el tipo marginal</label>
+                <label id="samelabel" for="sameAsMarginal" style="margin:0;">Igual que el tipo marginal general</label>
               </div>
             </div>
 
@@ -364,47 +363,46 @@
 
           <table class="table-compact" style="margin-top:4px">
             <tbody id="tablaResumen">
-            <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
+              <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
 
-            <!-- Entrega directa -->
-            <tr><td>Entrega directa (ingreso repercutido)</td><td style="text-align:right" id="rEntDirRep">—</td></tr>
-            <tr><td>Entrega directa (ingreso no repercutido)</td><td style="text-align:right" id="rEntDirNoRep">—</td></tr>
+              <!-- Entrega directa -->
+              <tr><td>Entrega directa (ingreso repercutido)</td><td style="text-align:right" id="rEntDirRep">—</td></tr>
+              <tr><td>Entrega directa (ingreso no repercutido)</td><td style="text-align:right" id="rEntDirNoRep">—</td></tr>
 
-            <!-- Entrega posterior -->
-            <tr><td>Entrega posterior (ingreso repercutido)</td><td style="text-align:right" id="rEntPosRep">—</td></tr>
-            <tr><td>Entrega posterior (ingreso no repercutido)</td><td style="text-align:right" id="rEntPosNoRep">—</td></tr>
+              <!-- Entrega posterior -->
+              <tr><td>Entrega posterior (ingreso repercutido)</td><td style="text-align:right" id="rEntPosRep">—</td></tr>
+              <tr><td>Entrega posterior (ingreso no repercutido)</td><td style="text-align:right" id="rEntPosNoRep">—</td></tr>
 
-            <!-- Renting (uso) -->
-            <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
-            <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
+              <!-- Renting -->
+              <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
+              <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
 
-            <!-- Deltas vs compra -->
-            <tr class="emph-row">
-              <td>Diferencia vs compra · Entrega directa (repercutido)</td>
-              <td style="text-align:right" id="dEntDirRep">—</td>
-            </tr>
-            <tr class="emph-row">
-              <td>Diferencia vs compra · Entrega directa (no repercutido)</td>
-              <td style="text-align:right" id="dEntDirNoRep">—</td>
-            </tr>
-            <tr class="emph-row">
-              <td>Diferencia vs compra · Entrega posterior (repercutido)</td>
-              <td style="text-align:right" id="dEntPosRep">—</td>
-            </tr>
-            <tr class="emph-row">
-              <td>Diferencia vs compra · Entrega posterior (no repercutido)</td>
-              <td style="text-align:right" id="dEntPosNoRep">—</td>
-            </tr>
-            <tr class="emph-row">
-              <td>Diferencia vs compra · Renting (repercutido)</td>
-              <td style="text-align:right" id="dRep">—</td>
-            </tr>
-            <tr class="emph-row">
-              <td>Diferencia vs compra · Renting (no repercutido)</td>
-              <td style="text-align:right" id="dNoRep">—</td>
-            </tr>
-          </tbody>
-
+              <!-- Deltas vs compra -->
+              <tr class="emph-row">
+                <td>Diferencia vs compra · Entrega directa (repercutido)</td>
+                <td style="text-align:right" id="dEntDirRep">—</td>
+              </tr>
+              <tr class="emph-row">
+                <td>Diferencia vs compra · Entrega directa (no repercutido)</td>
+                <td style="text-align:right" id="dEntDirNoRep">—</td>
+              </tr>
+              <tr class="emph-row">
+                <td>Diferencia vs compra · Entrega posterior (repercutido)</td>
+                <td style="text-align:right" id="dEntPosRep">—</td>
+              </tr>
+              <tr class="emph-row">
+                <td>Diferencia vs compra · Entrega posterior (no repercutido)</td>
+                <td style="text-align:right" id="dEntPosNoRep">—</td>
+              </tr>
+              <tr class="emph-row">
+                <td>Diferencia vs compra · Renting (repercutido)</td>
+                <td style="text-align:right" id="dRep">—</td>
+              </tr>
+              <tr class="emph-row">
+                <td>Diferencia vs compra · Renting (no repercutido)</td>
+                <td style="text-align:right" id="dNoRep">—</td>
+              </tr>
+            </tbody>
           </table>
 
           <!-- Enlace NotebookLM visible -->
@@ -481,6 +479,74 @@
       td.textContent = (value>=0?'+':'') + fmtEur(value);
     }
 
+    /* ===== Impuesto por TRAMOS =====
+       Tabla orientativa estatal+autonómico medio 2024/25.
+       Formato: límites superiores de tramo y tipo del tramo.
+       Interpreta [12450, 0.19] como 0..12450 al 19%; el último usa Infinity.
+    */
+    const TAX_TABLE = [
+      [12450, 0.19],
+      [20200, 0.24],
+      [35200, 0.30],
+      [60000, 0.37],
+      [300000, 0.45],
+      [Infinity, 0.47] // si quieres 0.49 para ciertas CCAA, cámbialo aquí
+    ];
+
+    function taxByBrackets(base, table=TAX_TABLE){
+      base = Math.max(0, base || 0);
+      let prev = 0, tax = 0;
+      for(const [limit, rate] of table){
+        const span = Math.min(base, limit) - prev;
+        if(span > 0){ tax += span * rate; prev += span; }
+        if(base <= limit) break;
+      }
+      return tax;
+    }
+    function marginalRate(base, table=TAX_TABLE){
+      base = Math.max(0, base || 0);
+      let prev = 0;
+      for(const [limit, rate] of table){
+        if(base <= limit) return rate;
+        prev = limit;
+      }
+      return table[table.length-1][1];
+    }
+
+    // Resuelve G en casos "no repercutido": Tax(base0 + extra + G) − Tax(base0) − G = 0
+    function solveG_bisection(base0, extra, table=TAX_TABLE){
+      const f = (G) => taxByBrackets(base0 + extra + G, table) - taxByBrackets(base0, table) - G;
+
+      let lo = 0, hi;
+      const rmax = table[table.length-1][1];
+      hi = (extra > 0) ? extra * rmax / Math.max(1e-9, (1 - rmax)) : 0;
+      if(!isFinite(hi) || hi <= 0) hi = Math.max(1000, Math.abs(extra) * 10);
+
+      // Asegurar f(lo) <= 0 y f(hi) >= 0
+      let flo = f(lo), fhi = f(hi);
+      let guard = 0;
+      while(fhi < 0 && guard < 30){ hi *= 2; fhi = f(hi); guard++; }
+      // Si aún negativo, retorna 0 por seguridad
+      if(fhi < 0) return 0;
+
+      // Bisección
+      for(let i=0;i<60;i++){
+        const mid = 0.5*(lo+hi);
+        const fm = f(mid);
+        if(Math.abs(fm) < 1e-6) return mid;
+        if(fm < 0){ lo = mid; flo = fm; } else { hi = mid; fhi = fm; }
+      }
+      return 0.5*(lo+hi);
+    }
+
+    // Mostrar/ocultar inputs de tipo fijo cuando tramos ON
+    function setFlatInputsDisabled(disabled){
+      ['t','tFlex','tEnt'].forEach(id=>{
+        const el = document.getElementById(id);
+        if(el){ el.disabled = disabled; el.style.opacity = disabled ? .6 : 1; }
+      });
+    }
+
     // Expandir/Contraer todos los escenarios (solo los details de primer nivel en .card)
     document.getElementById('expandAll').addEventListener('click', ()=>{
       document.querySelectorAll('.card > details').forEach(d=>d.open=true);
@@ -489,18 +555,23 @@
       document.querySelectorAll('.card > details').forEach(d=>d.open=false);
     });
 
-
     /* ===== Cálculo principal ===== */
     function calc(){
       const B = getNum('B');
-      const t = getNum('t')/100;
-      const costeCompraMensual = getNum('costeCompraMensual');
+      const useBrackets = document.getElementById('toggleTramos').checked;
+
+      // Tipos fijos solo si NO usamos tramos
+      const t     = useBrackets ? null : getNum('t')/100;
 
       /* ===== COMPRA ===== */
-      const netoSinCoche = B*(1-t);
+      const costeCompraMensual = getNum('costeCompraMensual');
       const costeCompraAnual = costeCompraMensual*12;
+
+      const taxCompra = useBrackets ? taxByBrackets(B) : (B * (t ?? 0));
+      const netoSinCoche = B - taxCompra;
       const netoCompra = netoSinCoche - costeCompraAnual;
 
+      // KPI + Resumen + Detalle
       document.getElementById('kpiCompra').textContent = fmtEur(netoCompra);
       document.getElementById('tablaCompraResumen').innerHTML = `
         <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
@@ -509,89 +580,121 @@
       `;
       document.getElementById('tablaCompraDetalle').innerHTML = `
         <tr><td>Bruto anual</td><td>${fmtEur(B)}</td></tr>
-        <tr><td>IRPF (marginal)</td><td>− ${fmtEur(B*t)}</td></tr>
+        <tr><td>${useBrackets?'Cuota por tramos':'IRPF (marginal fijo)'}</td><td>− ${fmtEur(taxCompra)}</td></tr>
         <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
         <tr><td>Coste anual coche</td><td>− ${fmtEur(costeCompraAnual)}</td></tr>
         <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoCompra)}</strong></td></tr>
       `;
 
-    /* ===== ENTREGA EN PROPIEDAD ===== */
-    const tipoEntrega = document.getElementById('tipoEntrega').value; // directa | posterior
-    const costeAdq = getNum('costeAdq');
-    const aniosUso = getNum('aniosUso');
-    const vmEntrega = getNum('vmEntrega');
-    const tEnt = getNum('tEnt')/100;
-    const ingresoEntregaSel = document.getElementById('ingresoEntregaSel').value; // repercutido | norepercutido
+      /* ===== ENTREGA EN PROPIEDAD ===== */
+      const tipoEntrega = document.getElementById('tipoEntrega').value; // directa | posterior
+      const costeAdq = getNum('costeAdq');
+      const aniosUso = getNum('aniosUso');
+      const vmEntrega = getNum('vmEntrega');
+      const tEnt  = useBrackets ? null : getNum('tEnt')/100;
+      const ingresoEntregaSel = document.getElementById('ingresoEntregaSel').value; // repercutido | norepercutido
 
-    // Valoraciones para ambos escenarios (SIEMPRE)
-    const valorEntregaDir = costeAdq;
-    const valoracionUsoAcum = 0.20 * costeAdq * (isFinite(aniosUso) ? aniosUso : 0);
-    const valorEntregaPos = Math.max(0, vmEntrega - valoracionUsoAcum);
+      // Valoraciones para ambos escenarios (SIEMPRE)
+      const valorEntregaDir = costeAdq;
+      const valoracionUsoAcum = 0.20 * costeAdq * (isFinite(aniosUso) ? aniosUso : 0);
+      const valorEntregaPos = Math.max(0, vmEntrega - valoracionUsoAcum);
 
-    // Helper: neto de entrega según si el ingreso se repercute o no
-    function netoEntrega(valor, repercutido){
-      if(repercutido){
-        const base = B + valor;
-        const irpf = base * tEnt;
-        return B - irpf;
-      } else {
-        const G = valor * tEnt / (1 - tEnt);         // brutalización
-        const base = B + valor + G;
-        const retTot = base * tEnt;
-        const irpfNom = retTot - G;
-        return B - irpfNom;
+      function netoEntrega(valor, repercutido){
+        if(useBrackets){
+          if(repercutido){
+            const base = B + valor;
+            const tax = taxByBrackets(base);
+            return B - tax;
+          }else{
+            const G = solveG_bisection(B, valor);
+            const taxDiff = taxByBrackets(B + valor + G) - taxByBrackets(B);
+            const retNom = taxDiff - G;
+            return B - retNom;
+          }
+        } else {
+          if(repercutido){
+            const base = B + valor, irpf = base * (tEnt ?? 0);
+            return B - irpf;
+          }else{
+            const G = valor * (tEnt ?? 0) / (1 - (tEnt ?? 0));
+            const base = B + valor + G;
+            const retTot = base * (tEnt ?? 0);
+            const irpfNom = retTot - G;
+            return B - irpfNom;
+          }
+        }
       }
-    }
 
-    // Calcula las 4 variantes para el ASIDE
-    const netEntDirRep   = netoEntrega(valorEntregaDir, true);
-    const netEntDirNoRep = netoEntrega(valorEntregaDir, false);
-    const netEntPosRep   = netoEntrega(valorEntregaPos, true);
-    const netEntPosNoRep = netoEntrega(valorEntregaPos, false);
+      const netEntDirRep   = netoEntrega(valorEntregaDir, true);
+      const netEntDirNoRep = netoEntrega(valorEntregaDir, false);
+      const netEntPosRep   = netoEntrega(valorEntregaPos, true);
+      const netEntPosNoRep = netoEntrega(valorEntregaPos, false);
 
-    // KPI y desgloses de la tarjeta de “Entrega” respetan la selección
-    const valorEntregaSeleccionado = (tipoEntrega === 'directa') ? valorEntregaDir : valorEntregaPos;
-    const netoEntregaMostrar = (ingresoEntregaSel === 'norepercutido')
-      ? netoEntrega(valorEntregaSeleccionado, false)
-      : netoEntrega(valorEntregaSeleccionado, true);
+      // KPI y desgloses de la tarjeta (según selección)
+      const valorEntregaSeleccionado = (tipoEntrega === 'directa') ? valorEntregaDir : valorEntregaPos;
+      const netoEntregaMostrar = (ingresoEntregaSel === 'norepercutido')
+        ? netoEntrega(valorEntregaSeleccionado, false)
+        : netoEntrega(valorEntregaSeleccionado, true);
 
-    document.getElementById('kpiEntrega').textContent = fmtEur(netoEntregaMostrar);
-    document.getElementById('tablaEntregaResumen').innerHTML = `
-      <tr><td>Tipo de entrega</td><td>${tipoEntrega==='directa'?'Directa (sin uso previo)':'Uso previo y posterior entrega'}</td></tr>
-      <tr><td>Valoración de entrega</td><td>${fmtEur(valorEntregaSeleccionado)}</td></tr>
-      <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
-    `;
-
-    // Detalle (entrega) según selección
-    if(ingresoEntregaSel === 'norepercutido'){
-      const G_ent = valorEntregaSeleccionado * tEnt / (1 - tEnt);
-      const baseIRPF_Ent_B = B + valorEntregaSeleccionado + G_ent;
-      const retTotalEnt_B = baseIRPF_Ent_B * tEnt;
-      const irpfDesdeNominaEnt_B = retTotalEnt_B - G_ent;
-      document.getElementById('tablaEntregaDetalle').innerHTML = `
-        <tr><td class="hint">Ingreso a cuenta (empresa) <span class="hi" data-tip="G = valoración × t / (1 − t).">i</span></td><td>${fmtEur(G_ent)}</td></tr>
-        <tr><td>Base IRPF (teórica)</td><td>${fmtEur(baseIRPF_Ent_B)}</td></tr>
-        <tr><td>Retención total teórica</td><td>${fmtEur(retTotalEnt_B)}</td></tr>
-        <tr><td>Retención desde nómina</td><td>− ${fmtEur(irpfDesdeNominaEnt_B)}</td></tr>
-        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
+      document.getElementById('kpiEntrega').textContent = fmtEur(netoEntregaMostrar);
+      document.getElementById('tablaEntregaResumen').innerHTML = `
+        <tr><td>Tipo de entrega</td><td>${tipoEntrega==='directa'?'Directa (sin uso previo)':'Uso previo y posterior entrega'}</td></tr>
+        <tr><td>Valoración de entrega</td><td>${fmtEur(valorEntregaSeleccionado)}</td></tr>
+        <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
       `;
-    } else {
-      const baseIRPF_Ent_A = B + valorEntregaSeleccionado;
-      const irpf_Ent_A = baseIRPF_Ent_A * tEnt;
-      document.getElementById('tablaEntregaDetalle').innerHTML = `
-        <tr><td>Base IRPF</td><td>${fmtEur(baseIRPF_Ent_A)}</td></tr>
-        <tr><td>IRPF</td><td>− ${fmtEur(irpf_Ent_A)}</td></tr>
-        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
-      `;
-    }
 
+      if(ingresoEntregaSel === 'norepercutido'){
+        if(useBrackets){
+          const G = solveG_bisection(B, valorEntregaSeleccionado);
+          const baseB = B, baseA = B + valorEntregaSeleccionado + G;
+          const taxDiff = taxByBrackets(baseA) - taxByBrackets(baseB);
+          const irpfNom = taxDiff - G;
+          document.getElementById('tablaEntregaDetalle').innerHTML = `
+            <tr><td class="hint">Ingreso a cuenta (empresa) <span class="hi" data-tip="Resuelto por bisección: Tax(B+V+G)−Tax(B)=G">i</span></td><td>${fmtEur(G)}</td></tr>
+            <tr><td>Base antes / después</td><td>${fmtEur(baseB)} → ${fmtEur(baseA)}</td></tr>
+            <tr><td>Retención total teórica</td><td>${fmtEur(taxDiff)}</td></tr>
+            <tr><td>Retención desde nómina</td><td>− ${fmtEur(irpfNom)}</td></tr>
+            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
+          `;
+        }else{
+          const G = valorEntregaSeleccionado * (tEnt ?? 0) / (1 - (tEnt ?? 0));
+          const base = B + valorEntregaSeleccionado + G;
+          const retTot = base * (tEnt ?? 0);
+          const irpfNom = retTot - G;
+          document.getElementById('tablaEntregaDetalle').innerHTML = `
+            <tr><td class="hint">Ingreso a cuenta (empresa) <span class="hi" data-tip="G = V × t / (1 − t)">i</span></td><td>${fmtEur(G)}</td></tr>
+            <tr><td>Base IRPF (teórica)</td><td>${fmtEur(base)}</td></tr>
+            <tr><td>Retención total teórica</td><td>${fmtEur(retTot)}</td></tr>
+            <tr><td>Retención desde nómina</td><td>− ${fmtEur(irpfNom)}</td></tr>
+            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
+          `;
+        }
+      } else {
+        if(useBrackets){
+          const base = B + valorEntregaSeleccionado;
+          const tax = taxByBrackets(base);
+          document.getElementById('tablaEntregaDetalle').innerHTML = `
+            <tr><td>Base IRPF</td><td>${fmtEur(base)}</td></tr>
+            <tr><td>Cuota por tramos</td><td>− ${fmtEur(tax)}</td></tr>
+            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
+          `;
+        }else{
+          const base = B + valorEntregaSeleccionado;
+          const irpf = base * (tEnt ?? 0);
+          document.getElementById('tablaEntregaDetalle').innerHTML = `
+            <tr><td>Base IRPF</td><td>${fmtEur(base)}</td></tr>
+            <tr><td>IRPF</td><td>− ${fmtEur(irpf)}</td></tr>
+            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>
+          `;
+        }
+      }
 
       /* ===== RENTING (uso) ===== */
       const Cmens = getNum('Cmensual');
       const p = getNum('p')/100;
       const V = getNum('V');
       const ecoRed = getSelNum('ecoRed'); // 0, 0.15, 0.20, 0.30
-      const tFlex = getNum('tFlex')/100;
+      const tFlex = useBrackets ? null : getNum('tFlex')/100;
       const ingresoCuentaSel = document.getElementById('ingresoCuentaSel').value; // repercutido | norepercutido
 
       const Canual = Cmens*12;
@@ -600,59 +703,98 @@
       const especie = valoracionAnual * p;
       const brutoReducido = B - Canual;
 
-      // Renting A) repercutido
-      const baseIRPF_A = brutoReducido + especie;
-      const irpf_A = baseIRPF_A * tFlex;
-      const netoFlex_A = brutoReducido - irpf_A;
+      let netoFlex_A, netoFlex_B, kpiRenting;
 
-      // Renting B) no repercutido
-      const G = especie * tFlex / (1 - tFlex);
-      const baseIRPF_B = brutoReducido + especie + G;
-      const retencionTotal_B = baseIRPF_B * tFlex;
-      const irpfDesdeNomina_B = retencionTotal_B - G;
-      const netoFlex_B = brutoReducido - irpfDesdeNomina_B;
+      if(useBrackets){
+        // Repercutido
+        const baseA = brutoReducido + especie;
+        const taxA = taxByBrackets(baseA);
+        netoFlex_A = (B - Canual) - taxA;
 
-      const netoRentingMostrar = (ingresoCuentaSel === 'norepercutido') ? netoFlex_B : netoFlex_A;
-      document.getElementById('kpiRenting').textContent = fmtEur(netoRentingMostrar);
+        // No repercutido: resolver G con bisección respecto a base dineraria (B − C)
+        const G = solveG_bisection(B - Canual, especie);
+        const taxDiff = taxByBrackets(brutoReducido + especie + G) - taxByBrackets(brutoReducido);
+        const irpfNom = taxDiff - G;
+        netoFlex_B = (B - Canual) - irpfNom;
 
-      document.getElementById('tablaRentingResumen').innerHTML = `
-        <tr><td class="hint">Cuota renting anual <span class="hi" data-tip="Cuota mensual × 12. Sacrificio salarial antes de IRPF.">i</span></td><td>− ${fmtEur(Canual)}</td></tr>
-        <tr><td class="hint">Valoración anual (20% × V) <span class="hi" data-tip="Valoración estándar AEAT sobre vehículo nuevo.">i</span></td><td>${fmtEur(valoracionBase20)}</td></tr>
-        <tr><td>Reducción eficiencia aplicada</td><td>${new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(ecoRed*100)} %</td></tr>
-        <tr><td>Base tras reducción</td><td>${fmtEur(valoracionAnual)}</td></tr>
-        <tr><td class="hint">Especie imputable (% uso) <span class="hi" data-tip="Valoración tras reducción × % uso privativo.">i</span></td><td>${fmtEur(especie)}</td></tr>
-        <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(netoRentingMostrar)}</strong></td></tr>
-      `;
-      const detalleRepercutido = `
-        <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
-        <tr><td>Base IRPF</td><td>${fmtEur(baseIRPF_A)}</td></tr>
-        <tr><td>IRPF (flex)</td><td>− ${fmtEur(irpf_A)}</td></tr>
-        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_A)}</strong></td></tr>
-      `;
-      const detalleNoRepercutido = `
-        <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
-        <tr><td class="hint">Ingreso a cuenta (empresa) <span class="hi" data-tip="G = especie × t / (1 − t). Lo ingresa la empresa como pago a cuenta de tu IRPF.">i</span></td><td>${fmtEur(G)}</td></tr>
-        <tr><td>Base IRPF (teórica)</td><td>${fmtEur(baseIRPF_B)}</td></tr>
-        <tr><td>Retención total teórica</td><td>${fmtEur(retencionTotal_B)}</td></tr>
-        <tr><td>Retención desde nómina</td><td>− ${fmtEur(irpfDesdeNomina_B)}</td></tr>
-        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_B)}</strong></td></tr>
-      `;
-      document.getElementById('tablaRentingDetalle').innerHTML =
-        (ingresoCuentaSel === 'norepercutido') ? detalleNoRepercutido : detalleRepercutido;
+        kpiRenting = (ingresoCuentaSel === 'norepercutido') ? netoFlex_B : netoFlex_A;
 
-      /* ===== ASIDE: comparativa de CUATRO opciones ===== */
-      // Pintar resultados en ASIDE
+        document.getElementById('tablaRentingResumen').innerHTML = `
+          <tr><td class="hint">Cuota renting anual <span class="hi" data-tip="Sacrificio salarial antes de IRPF">i</span></td><td>− ${fmtEur(Canual)}</td></tr>
+          <tr><td>Valoración anual (20% × V)</td><td>${fmtEur(valoracionBase20)}</td></tr>
+          <tr><td>Reducción eficiencia aplicada</td><td>${new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(ecoRed*100)} %</td></tr>
+          <tr><td>Base tras reducción</td><td>${fmtEur(valoracionAnual)}</td></tr>
+          <tr><td>Especie imputable (% uso)</td><td>${fmtEur(especie)}</td></tr>
+          <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(kpiRenting)}</strong></td></tr>
+        `;
+
+        if(ingresoCuentaSel === 'norepercutido'){
+          document.getElementById('tablaRentingDetalle').innerHTML = `
+            <tr><td>Base dineraria (B − C)</td><td>${fmtEur(brutoReducido)}</td></tr>
+            <tr><td class="hint">Ingreso a cuenta (empresa) <span class="hi" data-tip="Resuelto por bisección: Tax(B−C+E+G)−Tax(B−C)=G">i</span></td><td>${fmtEur(G)}</td></tr>
+            <tr><td>Retención total teórica</td><td>${fmtEur(taxDiff)}</td></tr>
+            <tr><td>Retención desde nómina</td><td>− ${fmtEur(irpfNom)}</td></tr>
+            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_B)}</strong></td></tr>
+          `;
+        } else {
+          document.getElementById('tablaRentingDetalle').innerHTML = `
+            <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
+            <tr><td>Base IRPF (B − C + E)</td><td>${fmtEur(baseA)}</td></tr>
+            <tr><td>Cuota por tramos</td><td>− ${fmtEur(taxA)}</td></tr>
+            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_A)}</strong></td></tr>
+          `;
+        }
+
+      } else {
+        // Modelo plano (tFlex)
+        const baseA = brutoReducido + especie;
+        const irpf_A = baseA * (tFlex ?? 0);
+        netoFlex_A = (B - Canual) - irpf_A;
+
+        const G = especie * (tFlex ?? 0) / (1 - (tFlex ?? 0));
+        const baseB = brutoReducido + especie + G;
+        const retTotB = baseB * (tFlex ?? 0);
+        const irpfNomB = retTotB - G;
+        netoFlex_B = (B - Canual) - irpfNomB;
+
+        kpiRenting = (ingresoCuentaSel === 'norepercutido') ? netoFlex_B : netoFlex_A;
+
+        document.getElementById('tablaRentingResumen').innerHTML = `
+          <tr><td class="hint">Cuota renting anual <span class="hi" data-tip="Cuota mensual × 12. Sacrificio salarial antes de IRPF.">i</span></td><td>− ${fmtEur(Canual)}</td></tr>
+          <tr><td>Valoración anual (20% × V)</td><td>${fmtEur(valoracionBase20)}</td></tr>
+          <tr><td>Reducción eficiencia aplicada</td><td>${new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(ecoRed*100)} %</td></tr>
+          <tr><td>Base tras reducción</td><td>${fmtEur(valoracionAnual)}</td></tr>
+          <tr><td>Especie imputable (% uso)</td><td>${fmtEur(especie)}</td></tr>
+          <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(kpiRenting)}</strong></td></tr>
+        `;
+        document.getElementById('tablaRentingDetalle').innerHTML =
+          (ingresoCuentaSel === 'norepercutido') ? `
+            <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
+            <tr><td class="hint">Ingreso a cuenta (empresa) <span class="hi" data-tip="G = especie × t / (1 − t).">i</span></td><td>${fmtEur(G)}</td></tr>
+            <tr><td>Base IRPF (teórica)</td><td>${fmtEur(baseB)}</td></tr>
+            <tr><td>Retención total teórica</td><td>${fmtEur(retTotB)}</td></tr>
+            <tr><td>Retención desde nómina</td><td>− ${fmtEur(irpfNomB)}</td></tr>
+            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_B)}</strong></td></tr>
+          ` : `
+            <tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
+            <tr><td>Base IRPF</td><td>${fmtEur(baseA)}</td></tr>
+            <tr><td>IRPF (flex)</td><td>− ${fmtEur(irpf_A)}</td></tr>
+            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_A)}</strong></td></tr>
+          `;
+      }
+
+      document.getElementById('kpiRenting').textContent = fmtEur(kpiRenting);
+
+      /* ===== ASIDE: comparativa completa ===== */
       document.getElementById('rCompra').textContent = fmtEur(netoCompra);
 
       // Entrega directa
       document.getElementById('rEntDirRep').textContent   = fmtEur(netEntDirRep);
       document.getElementById('rEntDirNoRep').textContent = fmtEur(netEntDirNoRep);
-
       // Entrega posterior
       document.getElementById('rEntPosRep').textContent   = fmtEur(netEntPosRep);
       document.getElementById('rEntPosNoRep').textContent = fmtEur(netEntPosNoRep);
-
-      // Renting (ya lo tenías)
+      // Renting
       document.getElementById('rFlexRep').textContent = fmtEur(netoFlex_A);
       document.getElementById('rFlexNoRep').textContent = fmtEur(netoFlex_B);
 
@@ -663,7 +805,6 @@
       paintDeltaCell(document.getElementById('dEntPosNoRep'), netEntPosNoRep - netoCompra);
       paintDeltaCell(document.getElementById('dRep'),         netoFlex_A     - netoCompra);
       paintDeltaCell(document.getElementById('dNoRep'),       netoFlex_B     - netoCompra);
-
     }
 
     /* ===== Eventos ===== */
@@ -675,18 +816,22 @@
       el.addEventListener('blur', ()=>{ formatInput(el); calc(); });
       el.addEventListener('focus', ()=>{ unformatOnFocus(el); });
     });
-    ['ecoRed','ingresoCuentaSel','ingresoEntregaSel','tipoEntrega'].forEach(id=>{
+    ['ecoRed','ingresoCuentaSel','ingresoEntregaSel','tipoEntrega','toggleTramos'].forEach(id=>{
       const el = document.getElementById(id);
       el.addEventListener('change', ()=>{
         if(id==='tipoEntrega'){
           document.getElementById('bloquePosterior').style.display =
             (el.value === 'posterior') ? '' : 'none';
         }
+        if(id==='toggleTramos'){
+          const useBrackets = el.checked;
+          setFlatInputsDisabled(useBrackets);
+        }
         calc();
       });
     });
 
-    // Sincronizar tipos con marginal
+    // Sincronizar tipos con marginal general cuando NO usamos tramos
     const same = document.getElementById('sameAsMarginal');
     const tInput = document.getElementById('t');
     const tFlexInput = document.getElementById('tFlex');
@@ -705,9 +850,10 @@
 
     // Inicialización
     inputs.forEach(id=>{ const el = document.getElementById(id); if(el) formatInput(el); });
-    // Mostrar/ocultar bloque de entrega posterior según selección inicial
     document.getElementById('bloquePosterior').style.display =
       (document.getElementById('tipoEntrega').value === 'posterior') ? '' : 'none';
+    // Por defecto: tramos OFF y tipos habilitados
+    setFlatInputsDisabled(false);
     calc();
   </script>
 </body>
