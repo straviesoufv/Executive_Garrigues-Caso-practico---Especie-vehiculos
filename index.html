@@ -835,7 +835,14 @@ if (ingresoEntregaSel === 'norepercutido') {
       const rateInput  = rows[i].querySelector('input[data-role="rate"]');
       let limitText = limitInput.value.trim();
       const isLast = (i === rows.length-1);
-      const limit = isLast || /en\s+adelante/i.test(limitText) ? Infinity : parseLocaleNumber(limitText);
+
+      let limit = isLast || /en\s+adelante/i.test(limitText)
+        ? Infinity
+        : parseLocaleNumber(limitText);
+
+      // 👇 NUEVO: si parece “en miles”, convierto a euros
+      if (isFinite(limit) && limit < 1000) limit *= 1000;
+
       const rate  = (String(rateInput.value).replace(',','.').trim()==='' ? NaN : Number(String(rateInput.value).replace(',','.')));
       if(!isLast && (!isFinite(limit) || limit<=0)) return {error:'Límites inválidos en tramos.'};
       if(!(rate>=0 && rate<=100)) return {error:'Tipos fuera de rango (0–100%).'};
@@ -849,6 +856,7 @@ if (ingresoEntregaSel === 'norepercutido') {
     if(parsed[parsed.length-1][0] !== Infinity) parsed[parsed.length-1][0] = Infinity;
     return {data:parsed};
   }
+
 
   function renderEco(){
     const tbody = document.querySelector('#tablaEco tbody');
