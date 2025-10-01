@@ -62,7 +62,7 @@
     h3{margin:0 0 var(--space-3);font-size:18px;color:var(--ufv-blue-900)}
 
     label{display:block;font-size:13px;color:var(--ufv-ink-muted);margin:var(--control-gap) 0 6px}
-    input,select{ width:100%;box-sizing:border-box;background:#fff;color:var(--ufv-ink); border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px; outline:none;transition:border .15s, box-shadow .15s }
+    input,select{ width:100%;box-sizing:border-box;background:#fff;color:#000; border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px; outline:none;transition:border .15s, box-shadow .15s }
     input:focus,select:focus{ border-color:var(--ufv-blue-600); box-shadow:0 0 0 3px color-mix(in srgb, var(--ufv-blue-600) 20%, transparent); }
     table{width:100%;border-collapse:collapse;margin-top:var(--space-2)}
     td{ padding:var(--table-padding-y) var(--table-padding-x); border-bottom:1px solid var(--line); text-align:right;font-variant-numeric:tabular-nums }
@@ -222,6 +222,10 @@
 
             <p class="overline">KPI</p>
             <p class="kpi t-numeral" id="kpiEntrega">—</p>
+            <div id="entregaWarning" style="display:none; margin-top:10px; padding:8px;
+              background:#FEF3C7; border:1px solid #F59E0B; color:#92400E;
+              border-radius:6px; font-size:13px;">
+            </div>            
             <details><summary>Resumen de la entrega</summary><table><tbody id="tablaEntregaResumen"></tbody></table></details>
             <details><summary>Detalle de retenciones (entrega)</summary><table><tbody id="tablaEntregaDetalle"></tbody></table></details>
           </details>
@@ -264,6 +268,12 @@
             <details><summary>Detalle de retenciones</summary><table><tbody id="tablaRentingDetalle"></tbody></table></details>
           </details>
         </div>
+
+        <div id="rentingWarning" style="display:none; margin-top:10px; padding:8px;
+          background:#FEF3C7; border:1px solid #F59E0B; color:#92400E;
+          border-radius:6px; font-size:13px;">
+        </div>
+
       </main>
 
       <!-- ASIDE -->
@@ -362,455 +372,555 @@
     </div>
   </div>
 
-  <script>
-    /* ===== Helpers formato/parseo ===== */
-    const fmtEur = v => new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
-    function parseLocaleNumber(input){
-      if(typeof input !== 'string') input = String(input ?? '');
-      let s = input.trim(); if(!s) return 0;
-      const neg = /^-/.test(s) ? -1 : 1;
-      s = s.replace(/[^0-9.,]/g,''); if(!s) return 0;
-      const lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.'); const decPos = Math.max(lastComma,lastDot);
-      if(decPos >= 0){
-        const intPart = s.slice(0, decPos).replace(/[.,]/g,'');
-        const fracPart = s.slice(decPos+1).replace(/[.,]/g,'');
-        return neg * parseFloat((intPart || '0') + '.' + (fracPart || '0'));
+<script>
+  /* ===== Helpers formato/parseo ===== */
+  const fmtEur = v => new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(v);
+  function parseLocaleNumber(input){
+    if(typeof input !== 'string') input = String(input ?? '');
+    let s = input.trim(); if(!s) return 0;
+    const neg = /^-/.test(s) ? -1 : 1;
+    s = s.replace(/[^0-9.,]/g,''); if(!s) return 0;
+    const lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.'); const decPos = Math.max(lastComma,lastDot);
+    if(decPos >= 0){
+      const intPart = s.slice(0, decPos).replace(/[.,]/g,'');
+      const fracPart = s.slice(decPos+1).replace(/[.,]/g,'');
+      return neg * parseFloat((intPart || '0') + '.' + (fracPart || '0'));
+    }
+    return neg * parseFloat(s.replace(/[.,]/g,''));
+  }
+  function getNum(id){ const el=document.getElementById(id); return el ? parseLocaleNumber(el.value) : 0; }
+  function getSelNum(id){ return Number(document.getElementById(id).value) || 0; }
+  function formatInput(el){
+    const t = el.dataset.type; const num = getNum(el.id);
+    if(t==='eur') el.value = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(num);
+    else if(t==='pct') el.value = new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(num) + ' %';
+    else el.value = new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(num);
+  }
+  function unformatOnFocus(el){
+    const val = getNum(el.id);
+    if(el.dataset.type==='pct'){ el.value = String(val).replace('.',','); } else { el.value = String(val); }
+  }
+  function paintDeltaCell(td, value){
+    td.classList.remove('good','bad','neu');
+    if(value>0) td.classList.add('good'); else if(value<0) td.classList.add('bad'); else td.classList.add('neu');
+    td.textContent = (value>=0?'+':'') + fmtEur(value);
+  }
+
+  /* ===== Config editable ===== */
+  const DEFAULT_TAX_TABLE = [
+    [12450, 0.19],[20200, 0.24],[35200, 0.30],[60000, 0.37],[300000, 0.45],[Infinity, 0.47]
+  ];
+  const DEFAULT_ECO = [
+    {enabled:true,  label:'Sin reducción (0%)', value:0},
+    {enabled:true,  label:'15% · Euro 6, ≤120 g CO₂ y ≤25.000 € sin impuestos', value:0.15},
+    {enabled:true,  label:'20% · Euro 6 + híbrido/GLP/GN, ≤35.000 € sin impuestos', value:0.20},
+    {enabled:true,  label:'30% · BEV/E-REV/PHEV (≥15 km), ≤40.000 € sin impuestos', value:0.30}
+  ];
+  let TAX_TABLE = JSON.parse(JSON.stringify(DEFAULT_TAX_TABLE));
+  let ECO_PRESETS = JSON.parse(JSON.stringify(DEFAULT_ECO));
+
+  /* ===== IRPF por tramos + solver G ===== */
+  function taxByBrackets(base, table=TAX_TABLE){
+    base = Math.max(0, base || 0);
+    let prev=0, tax=0;
+    for(const [limit, rate] of table){
+      const top = isFinite(limit) ? limit : base;
+      const span = Math.min(base, top) - prev;
+      if(span>0){ tax += span * rate; prev += span; }
+      if(base <= top) break;
+    }
+    return tax;
+  }
+  function solveG_bisection(base0, extra, table=TAX_TABLE){
+    const f = (G) => taxByBrackets(base0 + extra + G, table) - taxByBrackets(base0, table) - G;
+    let lo=0, hi = Math.max(1000, Math.abs(extra) * 1.0);
+    let fhi=f(hi), guard=0;
+    while(fhi<0 && guard<30){ hi*=2; fhi=f(hi); guard++; }
+    if(fhi<0) return 0;
+    for(let i=0;i<60;i++){
+      const mid=0.5*(lo+hi), fm=f(mid);
+      if(Math.abs(fm)<1e-7) return mid;
+      if(fm<0) lo=mid; else hi=mid;
+    }
+    return 0.5*(lo+hi);
+  }
+
+  /* ===== Info de tramo aplicable y formato % ===== */
+  function getBracketInfo(base, table=TAX_TABLE){
+    base = Math.max(0, base || 0);
+    let prev = 0;
+    for (const [limit, rate] of table){
+      const top = isFinite(limit) ? limit : Infinity;
+      if (base <= top) return { rate, from: prev, to: top }; // rate 0–1
+      prev = top;
+    }
+    const [_, r] = table[table.length-1];
+    return { rate: r, from: prev, to: Infinity };
+  }
+  const fmtPct0 = x => new Intl.NumberFormat('es-ES',{maximumFractionDigits:0}).format(x*100)+' %';
+
+
+
+  /* ===== UI: eco select ===== */
+  function populateEcoSelect(){
+    const sel = document.getElementById('ecoRed');
+    const current = Number(sel.value) || 0;
+    sel.innerHTML = '';
+    ECO_PRESETS.filter(p=>p.enabled).forEach(p=>{
+      const opt = document.createElement('option');
+      opt.value = String(p.value);
+      opt.textContent = p.label;
+      sel.appendChild(opt);
+    });
+    const found = Array.from(sel.options).find(o => Number(o.value) === current);
+    if(found) sel.value = String(current);
+  }
+
+  /* ===== Expand/Collapse ===== */
+  document.getElementById('expandAll').addEventListener('click', ()=>{ document.querySelectorAll('.card > details').forEach(d=>d.open=true); });
+  document.getElementById('collapseAll').addEventListener('click', ()=>{ document.querySelectorAll('.card > details').forEach(d=>d.open=false); });
+
+  /* ===== Cálculo ===== */
+  function calc(){
+    const B = getNum('B');
+    const useBrackets = document.getElementById('toggleTramos').checked;
+
+    // Reset de warnings (evita que se “queden”):
+    const entregaWarn = document.getElementById('entregaWarning');
+    const rentingWarn = document.getElementById('rentingWarning');
+    if (entregaWarn){ entregaWarn.style.display='none'; entregaWarn.textContent=''; }
+    if (rentingWarn){ rentingWarn.style.display='none'; rentingWarn.textContent=''; }
+
+    // Helper warning 30%
+    function checkEspecieLimit(especie, baseSalarial, targetId){
+      const warningBox = document.getElementById(targetId);
+      if (!warningBox) return;
+      if (especie > 0.30 * baseSalarial) {
+        warningBox.style.display = 'block';
+        warningBox.textContent = `⚠️ Atención: la retribución en especie (${fmtEur(especie)}) supera el 30% del salario bruto (${fmtEur(baseSalarial)}).`;
+      } else {
+        warningBox.style.display = 'none';
+        warningBox.textContent = '';
       }
-      return neg * parseFloat(s.replace(/[.,]/g,''));
-    }
-    function getNum(id){ const el=document.getElementById(id); return el ? parseLocaleNumber(el.value) : 0; }
-    function getSelNum(id){ return Number(document.getElementById(id).value) || 0; }
-    function formatInput(el){
-      const t = el.dataset.type; const num = getNum(el.id);
-      if(t==='eur') el.value = new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(num);
-      else if(t==='pct') el.value = new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(num) + ' %';
-      else el.value = new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(num);
-    }
-    function unformatOnFocus(el){
-      const val = getNum(el.id);
-      if(el.dataset.type==='pct'){ el.value = String(val).replace('.',','); } else { el.value = String(val); }
-    }
-    function paintDeltaCell(td, value){
-      td.classList.remove('good','bad','neu');
-      if(value>0) td.classList.add('good'); else if(value<0) td.classList.add('bad'); else td.classList.add('neu');
-      td.textContent = (value>=0?'+':'') + fmtEur(value);
     }
 
-    /* ===== Configuración editable (estado) ===== */
-    const DEFAULT_TAX_TABLE = [
-      [12450, 0.19],[20200, 0.24],[35200, 0.30],[60000, 0.37],[300000, 0.45],[Infinity, 0.47]
-    ];
-    const DEFAULT_ECO = [
-      {enabled:true,  label:'Sin reducción (0%)', value:0},
-      {enabled:true,  label:'15% · Euro 6, ≤120 g CO₂ y ≤25.000 € sin impuestos', value:0.15},
-      {enabled:true,  label:'20% · Euro 6 + híbrido/GLP/GN, ≤35.000 € sin impuestos', value:0.20},
-      {enabled:true,  label:'30% · BEV/E-REV/PHEV (≥15 km), ≤40.000 € sin impuestos', value:0.30}
-    ];
-    let TAX_TABLE = JSON.parse(JSON.stringify(DEFAULT_TAX_TABLE));
-    let ECO_PRESETS = JSON.parse(JSON.stringify(DEFAULT_ECO));
+    // ===== Compra
+    const t = useBrackets ? null : getNum('t')/100;
+    const costeCompraAnual = getNum('costeCompraMensual')*12;
+    const taxCompra = useBrackets ? taxByBrackets(B) : B*(t??0);
+    const netoSinCoche = B - taxCompra;
+    const netoCompra = netoSinCoche - costeCompraAnual;
+    const avgCompraPct = useBrackets && B>0 ? (taxCompra/B*100) : null;
 
-    /* ===== Impuesto por tramos + solver G ===== */
-    function taxByBrackets(base, table=TAX_TABLE){
-      base = Math.max(0, base || 0);
-      let prev=0, tax=0;
-      for(const [limit, rate] of table){
-        const top = isFinite(limit) ? limit : base;
-        const span = Math.min(base, top) - prev;
-        if(span>0){ tax += span * rate; prev += span; }
-        if(base <= top) break;
-      }
-      return tax;
-    }
-    function solveG_bisection(base0, extra, table=TAX_TABLE){
-      const f = (G) => taxByBrackets(base0 + extra + G, table) - taxByBrackets(base0, table) - G;
-      let lo=0, hi = Math.max(1000, Math.abs(extra) * 1.0);
-      // Asegurar cambio de signo
-      let fhi=f(hi), guard=0;
-      while(fhi<0 && guard<30){ hi*=2; fhi=f(hi); guard++; }
-      if(fhi<0) return 0;
-      for(let i=0;i<60;i++){
-        const mid=0.5*(lo+hi), fm=f(mid);
-        if(Math.abs(fm)<1e-7) return mid;
-        if(fm<0) lo=mid; else hi=mid;
-      }
-      return 0.5*(lo+hi);
-    }
+    document.getElementById('kpiCompra').textContent = fmtEur(netoCompra);
+    document.getElementById('tablaCompraResumen').innerHTML = `
+      <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
+      <tr><td>Coste anual coche</td><td>− ${fmtEur(costeCompraAnual)}</td></tr>
+      <tr class="emph-row"><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoCompra)}</strong></td></tr>`;
+    document.getElementById('tablaCompraDetalle').innerHTML = `
+      <tr><td>Bruto anual</td><td>${fmtEur(B)}</td></tr>
+      <tr><td>${useBrackets?`Cuota por tramos (${avgCompraPct?.toFixed(2)}%)`:'IRPF (marginal fijo)'}</td><td>− ${fmtEur(taxCompra)}</td></tr>
+      <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
+      <tr><td>Coste anual coche</td><td>− ${fmtEur(costeCompraAnual)}</td></tr>
+      <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoCompra)}</strong></td></tr>`;
 
-    /* ===== UI: eco select poblado desde presets ===== */
-    function populateEcoSelect(){
-      const sel = document.getElementById('ecoRed');
-      const current = Number(sel.value) || 0;
-      sel.innerHTML = '';
-      ECO_PRESETS.filter(p=>p.enabled).forEach(p=>{
-        const opt = document.createElement('option');
-        opt.value = String(p.value);
-        opt.textContent = p.label;
-        sel.appendChild(opt);
-      });
-      // intentar mantener selección
-      const found = Array.from(sel.options).find(o => Number(o.value) === current);
-      if(found) sel.value = String(current);
-    }
+    // ===== Entrega en propiedad
+    const tipoEntrega = document.getElementById('tipoEntrega').value; // directa | posterior
+    const costeAdq    = getNum('costeAdq');
+    const aniosUso    = getNum('aniosUso');
+    const vmEntrega   = getNum('vmEntrega');
+    const tEnt        = useBrackets ? null : getNum('tEnt')/100;
+    const ingresoEntregaSel = document.getElementById('ingresoEntregaSel').value;
 
-    /* ===== Expandir/Contraer details ===== */
-    document.getElementById('expandAll').addEventListener('click', ()=>{ document.querySelectorAll('.card > details').forEach(d=>d.open=true); });
-    document.getElementById('collapseAll').addEventListener('click', ()=>{ document.querySelectorAll('.card > details').forEach(d=>d.open=false); });
+    const valorEntregaDir = costeAdq;
+    const valoracionUsoAcum = 0.20 * costeAdq * (isFinite(aniosUso) ? aniosUso : 0);
+    const valorEntregaPos = Math.max(0, vmEntrega - valoracionUsoAcum);
+    const valorEntregaSel = (tipoEntrega==='directa') ? valorEntregaDir : valorEntregaPos;
+    // warning entrega: la "especie" es el valor de entrega seleccionado
+    checkEspecieLimit(valorEntregaSel, B, 'entregaWarning');
 
-    /* ===== Cálculo principal ===== */
-    function calc(){
-      const B = getNum('B');
-      const useBrackets = document.getElementById('toggleTramos').checked;
 
-      // Compra
-      const t = useBrackets ? null : getNum('t')/100;
-      const costeCompraAnual = getNum('costeCompraMensual')*12;
-      const taxCompra = useBrackets ? taxByBrackets(B) : B*(t??0);
-      const netoSinCoche = B - taxCompra;
-      const netoCompra = netoSinCoche - costeCompraAnual;
-      document.getElementById('kpiCompra').textContent = fmtEur(netoCompra);
-      document.getElementById('tablaCompraResumen').innerHTML = `
-        <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
-        <tr><td>Coste anual coche</td><td>− ${fmtEur(costeCompraAnual)}</td></tr>
-        <tr class="emph-row"><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoCompra)}</strong></td></tr>`;
-      document.getElementById('tablaCompraDetalle').innerHTML = `
-        <tr><td>Bruto anual</td><td>${fmtEur(B)}</td></tr>
-        <tr><td>${useBrackets?'Cuota por tramos':'IRPF (marginal fijo)'}</td><td>− ${fmtEur(taxCompra)}</td></tr>
-        <tr><td>Neto sin coche</td><td>${fmtEur(netoSinCoche)}</td></tr>
-        <tr><td>Coste anual coche</td><td>− ${fmtEur(costeCompraAnual)}</td></tr>
-        <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoCompra)}</strong></td></tr>`;
 
-      /* Entrega en propiedad */
-      const tipoEntrega = document.getElementById('tipoEntrega').value; // directa | posterior
-      const costeAdq = getNum('costeAdq');
-      const aniosUso = getNum('aniosUso');
-      const vmEntrega = getNum('vmEntrega');
-      const tEnt = useBrackets ? null : getNum('tEnt')/100;
-      const ingresoEntregaSel = document.getElementById('ingresoEntregaSel').value;
-
-      const valorEntregaDir = costeAdq;
-      const valoracionUsoAcum = 0.20 * costeAdq * (isFinite(aniosUso) ? aniosUso : 0);
-      const valorEntregaPos = Math.max(0, vmEntrega - valoracionUsoAcum);
-
-      function netoEntrega(valor, repercutido){
-        if(useBrackets){
-          if(repercutido){
-            return B - taxByBrackets(B + valor);
-          }else{
-            const G = solveG_bisection(B, valor);
-            const taxDiff = taxByBrackets(B + valor + G) - taxByBrackets(B);
-            return B - (taxDiff - G);
-          }
-        }else{
-          if(repercutido){
-            return B - (B + valor)*(tEnt ?? 0);
-          }else{
-            const G = valor*(tEnt ?? 0)/(1-(tEnt ?? 0));
-            const retTot = (B + valor + G)*(tEnt ?? 0);
-            return B - (retTot - G);
-          }
-        }
-      }
-      const netEntDirRep   = netoEntrega(valorEntregaDir, true);
-      const netEntDirNoRep = netoEntrega(valorEntregaDir, false);
-      const netEntPosRep   = netoEntrega(valorEntregaPos, true);
-      const netEntPosNoRep = netoEntrega(valorEntregaPos, false);
-
-      const valorEntregaSel = (tipoEntrega==='directa') ? valorEntregaDir : valorEntregaPos;
-      const netoEntregaMostrar = (ingresoEntregaSel==='norepercutido') ? netoEntrega(valorEntregaSel,false) : netoEntrega(valorEntregaSel,true);
-      document.getElementById('kpiEntrega').textContent = fmtEur(netoEntregaMostrar);
-      document.getElementById('tablaEntregaResumen').innerHTML = `
-        <tr><td>Tipo de entrega</td><td>${tipoEntrega==='directa'?'Directa (sin uso previo)':'Uso previo y posterior entrega'}</td></tr>
-        <tr><td>Valoración de entrega</td><td>${fmtEur(valorEntregaSel)}</td></tr>
-        <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>`;
-      if(ingresoEntregaSel==='norepercutido'){
-        if(useBrackets){
-          const G = solveG_bisection(B, valorEntregaSel);
-          const taxDiff = taxByBrackets(B + valorEntregaSel + G) - taxByBrackets(B);
-          document.getElementById('tablaEntregaDetalle').innerHTML = `
-            <tr><td>Ingreso a cuenta (empresa)</td><td>${fmtEur(G)}</td></tr>
-            <tr><td>Retención total teórica</td><td>${fmtEur(taxDiff)}</td></tr>
-            <tr><td>Retención desde nómina</td><td>− ${fmtEur(taxDiff - G)}</td></tr>
-            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>`;
-        }else{
-          const G = valorEntregaSel*(tEnt ?? 0)/(1-(tEnt ?? 0));
-          const retTot = (B + valorEntregaSel + G)*(tEnt ?? 0);
-          document.getElementById('tablaEntregaDetalle').innerHTML = `
-            <tr><td>Ingreso a cuenta (empresa)</td><td>${fmtEur(G)}</td></tr>
-            <tr><td>Retención total teórica</td><td>${fmtEur(retTot)}</td></tr>
-            <tr><td>Retención desde nómina</td><td>− ${fmtEur(retTot - G)}</td></tr>
-            <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>`;
-        }
-      }else{
-        const quota = useBrackets ? taxByBrackets(B + valorEntregaSel) : (B + valorEntregaSel)*(tEnt ?? 0);
-        document.getElementById('tablaEntregaDetalle').innerHTML = `
-          <tr><td>Base IRPF</td><td>${fmtEur(B + valorEntregaSel)}</td></tr>
-          <tr><td>${useBrackets?'Cuota por tramos':'IRPF'}</td><td>− ${fmtEur(quota)}</td></tr>
-          <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>`;
-      }
-
-      /* Renting */
-      const Cmens = getNum('Cmensual'), Canual=Cmens*12;
-      const p = getNum('p')/100;
-      const V = getNum('V');
-      const ecoRed = getSelNum('ecoRed'); // tomado de presets
-      const especie = (0.20*V)*(1-ecoRed)*p;
-      const brutoReducido = B - Canual;
-      const tFlex = useBrackets ? null : getNum('tFlex')/100;
-      const ingresoCuentaSel = document.getElementById('ingresoCuentaSel').value;
-
-      let netoFlex_A, netoFlex_B;
+    function netoEntrega(valor, repercutido){
       if(useBrackets){
-        const taxA = taxByBrackets(brutoReducido + especie);
-        netoFlex_A = (B - Canual) - taxA;
-        const G = solveG_bisection(brutoReducido, especie);
-        const taxDiff = taxByBrackets(brutoReducido + especie + G) - taxByBrackets(brutoReducido);
-        netoFlex_B = (B - Canual) - (taxDiff - G);
-        document.getElementById('tablaRentingResumen').innerHTML = `
-          <tr><td>Cuota renting anual</td><td>− ${fmtEur(Canual)}</td></tr>
-          <tr><td>Valoración anual (20% × V)</td><td>${fmtEur(0.20*V)}</td></tr>
-          <tr><td>Reducción eficiencia aplicada</td><td>${(ecoRed*100).toFixed(2)} %</td></tr>
-          <tr><td>Especie imputable</td><td>${fmtEur(especie)}</td></tr>
-          <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(ingresoCuentaSel==='norepercutido'?netoFlex_B:netoFlex_A)}</strong></td></tr>`;
-        document.getElementById('tablaRentingDetalle').innerHTML =
-          (ingresoCuentaSel==='norepercutido')
-            ? `<tr><td>Base dineraria (B − C)</td><td>${fmtEur(brutoReducido)}</td></tr>
-               <tr><td>Ingreso a cuenta (empresa)</td><td>${fmtEur(G)}</td></tr>
-               <tr><td>Retención desde nómina</td><td>− ${fmtEur(taxDiff - G)}</td></tr>
-               <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_B)}</strong></td></tr>`
-            : `<tr><td>Base IRPF (B − C + E)</td><td>${fmtEur(brutoReducido + especie)}</td></tr>
-               <tr><td>Cuota por tramos</td><td>− ${fmtEur(taxA)}</td></tr>
-               <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_A)}</strong></td></tr>`;
+        if(repercutido){
+          return B - taxByBrackets(B + valor);
+        }else{
+          const G = solveG_bisection(B, valor);
+          const taxDiff = taxByBrackets(B + valor + G) - taxByBrackets(B);
+          return B - (taxDiff - G);
+        }
       }else{
-        const baseA = brutoReducido + especie;
-        const irpfA = baseA*(tFlex ?? 0);
-        netoFlex_A = (B - Canual) - irpfA;
-
-        const G = especie*(tFlex ?? 0)/(1-(tFlex ?? 0));
-        const retTot = (brutoReducido + especie + G)*(tFlex ?? 0);
-        netoFlex_B = (B - Canual) - (retTot - G);
-
-        document.getElementById('tablaRentingResumen').innerHTML = `
-          <tr><td>Cuota renting anual</td><td>− ${fmtEur(Canual)}</td></tr>
-          <tr><td>Valoración anual (20% × V)</td><td>${fmtEur(0.20*V)}</td></tr>
-          <tr><td>Reducción eficiencia aplicada</td><td>${(ecoRed*100).toFixed(2)} %</td></tr>
-          <tr><td>Especie imputable</td><td>${fmtEur(especie)}</td></tr>
-          <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(ingresoCuentaSel==='norepercutido'?netoFlex_B:netoFlex_A)}</strong></td></tr>`;
-        document.getElementById('tablaRentingDetalle').innerHTML =
-          (ingresoCuentaSel==='norepercutido')
-            ? `<tr><td>Bruto reducido</td><td>${fmtEur(brutoReducido)}</td></tr>
-               <tr><td>Ingreso a cuenta (empresa)</td><td>${fmtEur(G)}</td></tr>
-               <tr><td>Retención desde nómina</td><td>− ${fmtEur(retTot - G)}</td></tr>
-               <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_B)}</strong></td></tr>`
-            : `<tr><td>Base IRPF</td><td>${fmtEur(baseA)}</td></tr>
-               <tr><td>IRPF (flex)</td><td>− ${fmtEur(irpfA)}</td></tr>
-               <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_A)}</strong></td></tr>`;
+        if(repercutido){
+          return B - (B + valor)*(tEnt ?? 0);
+        }else{
+          const G = valor*(tEnt ?? 0)/(1-(tEnt ?? 0));
+          const retTot = (B + valor + G)*(tEnt ?? 0);
+          return B - (retTot - G);
+        }
       }
-      const netoRentingMostrar = (ingresoCuentaSel==='norepercutido') ? netoFlex_B : netoFlex_A;
-      document.getElementById('kpiRenting').textContent = fmtEur(netoRentingMostrar);
-
-      // Aside resumen
-      document.getElementById('rCompra').textContent = fmtEur(netoCompra);
-      document.getElementById('rEntDirRep').textContent   = fmtEur(netEntDirRep);
-      document.getElementById('rEntDirNoRep').textContent = fmtEur(netEntDirNoRep);
-      document.getElementById('rEntPosRep').textContent   = fmtEur(netEntPosRep);
-      document.getElementById('rEntPosNoRep').textContent = fmtEur(netEntPosNoRep);
-      document.getElementById('rFlexRep').textContent = fmtEur(netoFlex_A);
-      document.getElementById('rFlexNoRep').textContent = fmtEur(netoFlex_B);
-      paintDeltaCell(document.getElementById('dEntDirRep'),   netEntDirRep   - netoCompra);
-      paintDeltaCell(document.getElementById('dEntDirNoRep'), netEntDirNoRep - netoCompra);
-      paintDeltaCell(document.getElementById('dEntPosRep'),   netEntPosRep   - netoCompra);
-      paintDeltaCell(document.getElementById('dEntPosNoRep'), netEntPosNoRep - netoCompra);
-      paintDeltaCell(document.getElementById('dRep'),         netoFlex_A     - netoCompra);
-      paintDeltaCell(document.getElementById('dNoRep'),       netoFlex_B     - netoCompra);
     }
 
-    /* ===== Eventos de inputs principales ===== */
-    const inputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex','costeAdq','aniosUso','vmEntrega','tEnt'];
-    inputs.forEach(id=>{
-      const el = document.getElementById(id); if(!el) return;
-      el.addEventListener('input', calc);
-      el.addEventListener('blur', ()=>{ formatInput(el); calc(); });
-      el.addEventListener('focus', ()=>{ unformatOnFocus(el); });
-    });
-    ['ecoRed','ingresoCuentaSel','ingresoEntregaSel','tipoEntrega','toggleTramos'].forEach(id=>{
-      const el = document.getElementById(id);
-      el.addEventListener('change', ()=>{
-        if(id==='tipoEntrega'){
-          document.getElementById('bloquePosterior').style.display = (el.value === 'posterior') ? '' : 'none';
-        }
-        if(id==='toggleTramos'){
-          const disabled = el.checked;
-          ['t','tFlex','tEnt'].forEach(i=>{ const x=document.getElementById(i); if(x){ x.disabled=disabled; x.style.opacity=disabled?.6:1; }});
-        }
-        calc();
-      });
-    });
+    const netEntDirRep   = netoEntrega(valorEntregaDir, true);
+    const netEntDirNoRep = netoEntrega(valorEntregaDir, false);
+    const netEntPosRep   = netoEntrega(valorEntregaPos, true);
+    const netEntPosNoRep = netoEntrega(valorEntregaPos, false);
 
-    // Sync tipos fijos
-    const same = document.getElementById('sameAsMarginal');
-    const tInput = document.getElementById('t'); const tFlexInput = document.getElementById('tFlex');
-    same.addEventListener('change', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput);} calc(); });
-    tInput.addEventListener('input', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; calc(); } });
+const netoEntregaMostrar =
+  (ingresoEntregaSel==='norepercutido')
+    ? netoEntrega(valorEntregaSel,false)
+    : netoEntrega(valorEntregaSel,true);
 
-    const sameEnt = document.getElementById('sameAsMarginalEnt');
-    const tEntInput = document.getElementById('tEnt');
-    sameEnt.addEventListener('change', ()=>{ if(sameEnt.checked){ tEntInput.value = tInput.value; formatInput(tEntInput);} calc(); });
-    tInput.addEventListener('input', ()=>{ if(sameEnt.checked){ tEntInput.value = tInput.value; calc(); } });
+document.getElementById('kpiEntrega').textContent = fmtEur(netoEntregaMostrar);
+document.getElementById('tablaEntregaResumen').innerHTML = `
+  <tr><td>Tipo de entrega</td><td>${tipoEntrega==='directa'?'Directa (sin uso previo)':'Uso previo y posterior entrega'}</td></tr>
+  <tr><td>Valoración de entrega</td><td>${fmtEur(valorEntregaSel)}</td></tr>
+  <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>`;
 
-    document.getElementById('toggleDensity').addEventListener('change', (e)=>{ document.body.classList.toggle('compact', e.target.checked); });
+// Detalle
+if (ingresoEntregaSel === 'norepercutido') {
+  if (useBrackets){
+    const G = solveG_bisection(B, valorEntregaSel);
+    const baseTheo = B + valorEntregaSel + G;
+    const { rate: tramoTheo } = getBracketInfo(baseTheo);
+    const taxDiff = taxByBrackets(baseTheo) - taxByBrackets(B);
+    document.getElementById('tablaEntregaDetalle').innerHTML = `
+      <tr><td>Ingreso a cuenta (empresa)</td><td>${fmtEur(G)}</td></tr>
+      <tr><td>Base IRPF teórica = B + entrega + G</td><td>${fmtEur(baseTheo)}</td></tr>
+      <tr><td>Retención total (por tramos, ${fmtPct0(tramoTheo)})</td><td>${fmtEur(taxTheo)}</td></tr>
+      <tr><td>Retención desde nómina</td><td>− ${fmtEur(taxDiff - G)}</td></tr>
+      <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>`;
+  } else {
+    const G = valorEntregaSel*(tEnt ?? 0)/(1-(tEnt ?? 0));
+    const retTot = (B + valorEntregaSel + G)*(tEnt ?? 0);
+    document.getElementById('tablaEntregaDetalle').innerHTML = `
+      <tr><td>Ingreso a cuenta (empresa)</td><td>${fmtEur(G)}</td></tr>
+      <tr><td>Retención total (tipo fijo ${fmtPct0(tEnt ?? 0)})</td><td>${fmtEur(retTot)}</td></tr>
+      <tr><td>Retención desde nómina</td><td>− ${fmtEur(retTot - G)}</td></tr>
+      <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>`;
+  }
+} else {
+  const baseEnt = B + valorEntregaSel;
+  if (useBrackets){
+    const { rate: tramoEnt } = getBracketInfo(baseEnt);
+    const quota = taxByBrackets(baseEnt);
+    document.getElementById('tablaEntregaDetalle').innerHTML = `
+      <tr><td>Base IRPF</td><td>${fmtEur(baseEnt)}</td></tr>
+      <tr><td>Cuota por tramos (${fmtPct0(tramoEnt)})</td><td>− ${fmtEur(quota)}</td></tr>
+      <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>`;
+  } else {
+    const quota = baseEnt * (tEnt ?? 0);
+    document.getElementById('tablaEntregaDetalle').innerHTML = `
+      <tr><td>Base IRPF</td><td>${fmtEur(baseEnt)}</td></tr>
+      <tr><td>IRPF (tipo fijo ${fmtPct0(tEnt ?? 0)})</td><td>− ${fmtEur(quota)}</td></tr>
+      <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoEntregaMostrar)}</strong></td></tr>`;
+  }
+}
 
-    /* ===== Modal: lógica ===== */
-    const modal = document.getElementById('configModal');
-    const openBtn = document.getElementById('openConfig');
-    const closeBtn = document.getElementById('closeConfig');
-    openBtn.addEventListener('click', ()=>{ renderTramos(); renderEco(); modal.style.display='flex'; });
-    function closeModal(){ modal.style.display='none'; }
-    closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
-    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.style.display==='flex') closeModal(); });
 
-    // Tabs
-    document.querySelectorAll('.tab-btn').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));
-        b.classList.add('active');
-        document.getElementById(b.dataset.tab).classList.add('active');
-      });
-    });
+    // ===== Renting
+    const Cmens = getNum('Cmensual'), Canual = Cmens * 12;
+    const p = getNum('p') / 100;
+    const V = getNum('V');
+    const ecoRed = getSelNum('ecoRed');
+    const especie = (0.20 * V) * (1 - ecoRed) * p;     // especie sólo renting
+    const brutoReducido = B - Canual;
+    const tFlex = useBrackets ? null : getNum('tFlex') / 100;
+    const ingresoCuentaSel = document.getElementById('ingresoCuentaSel').value;
 
-    // Render tramos
-    function renderTramos(){
-      const tbody = document.querySelector('#tablaTramos tbody');
-      tbody.innerHTML='';
-      const temp = TAX_TABLE.map(([limit, rate])=>[limit, Math.round(rate*10000)/100]); // %
-      temp.forEach(([limit, pct], idx)=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${isFinite(limit)
-              ? `<input type="text" data-role="limit" value="${new Intl.NumberFormat('es-ES').format(limit)}" />`
-              : `<input type="text" data-role="limit" value="En adelante" disabled />`}</td>
-          <td><input type="text" data-role="rate" value="${String(pct).replace('.',',')}" /></td>
-          <td class="row-actions">
-            ${idx < temp.length-1 ? '<button type="button" data-action="del">Eliminar</button>' : '<span class="help">último</span>'}
-          </td>`;
-        tbody.appendChild(tr);
-      });
+    // Warning renting (independiente del de entrega)
+    checkEspecieLimit(especie, B, 'rentingWarning');
+
+
+    let netoFlex_A, netoFlex_B;
+
+    if (useBrackets) {
+      const baseA = brutoReducido + especie;
+      const taxA = taxByBrackets(baseA);
+      const { rate: tramoA } = getBracketInfo(baseA);
+
+      netoFlex_A = (B - Canual) - taxA;
+
+      const G = solveG_bisection(brutoReducido, especie);
+      const baseTheo = brutoReducido + especie + G;
+      const taxTheo = taxByBrackets(baseTheo);
+      const taxDiff = taxTheo - taxByBrackets(brutoReducido);
+      const { rate: tramoTheo } = getBracketInfo(baseTheo);
+      netoFlex_B = (B - Canual) - (taxDiff - G);
+
+      document.getElementById('tablaRentingResumen').innerHTML = `
+        <tr><td>Cuota renting anual</td><td>− ${fmtEur(Canual)}</td></tr>
+        <tr><td>Valoración anual (20% × V)</td><td>${fmtEur(0.20 * V)}</td></tr>
+        <tr><td>Reducción eficiencia aplicada</td><td>${(ecoRed * 100).toFixed(2)} %</td></tr>
+        <tr><td>Especie imputable</td><td>${fmtEur(especie)}</td></tr>
+        <tr><td class="hint">Nota <span class="hi" data-tip="La especie no es dinero que cobres: solo incrementa la base para calcular el IRPF. El neto parte del sueldo tras restar la cuota de renting.">i</span></td><td>No dineraria</td></tr>
+        <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(ingresoCuentaSel === 'norepercutido' ? netoFlex_B : netoFlex_A)}</strong></td></tr>
+      `;
+
+      if (ingresoCuentaSel === 'norepercutido') {
+        document.getElementById('tablaRentingDetalle').innerHTML =
+          `<tr><td>Bruto reducido (B − C)</td><td>${fmtEur(brutoReducido)}</td></tr>
+           <tr><td>Ingreso a cuenta (empresa)</td><td>${fmtEur(G)}</td></tr>
+           <tr><td>Base IRPF teórica = B − C + especie + G</td><td>${fmtEur(baseTheo)}</td></tr>
+           <tr><td>Retención total (por tramos, ${avgTheo.toFixed(2)}%)</td><td>${fmtEur(taxTheo)}</td></tr>
+           <tr><td>Retención desde nómina</td><td>− ${fmtEur(taxDiff - G)}</td></tr>
+           <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_B)}</strong></td></tr>`;
+      } else {
+        document.getElementById('tablaRentingDetalle').innerHTML =
+          `<tr><td>Bruto reducido (B − C)</td><td>${fmtEur(brutoReducido)}</td></tr>
+           <tr><td>Base IRPF = B − C + especie</td><td>${fmtEur(baseA)}</td></tr>
+           <tr><td>Cuota por tramos (${fmtPct0(tramoA)})</td><td>− ${fmtEur(taxA)}</td></tr>
+           <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_A)}</strong></td></tr>`;
+      }
+
+    } else {
+      const baseA = brutoReducido + especie;
+      const irpfA = baseA * (tFlex ?? 0);
+      netoFlex_A = (B - Canual) - irpfA;
+
+      const G = especie * (tFlex ?? 0) / (1 - (tFlex ?? 0));
+      const retTot = (brutoReducido + especie + G) * (tFlex ?? 0);
+      netoFlex_B = (B - Canual) - (retTot - G);
+
+      document.getElementById('tablaRentingResumen').innerHTML = `
+        <tr><td>Cuota renting anual</td><td>− ${fmtEur(Canual)}</td></tr>
+        <tr><td>Valoración anual (20% × V)</td><td>${fmtEur(0.20 * V)}</td></tr>
+        <tr><td>Reducción eficiencia aplicada</td><td>${(ecoRed * 100).toFixed(2)} %</td></tr>
+        <tr><td>Especie imputable</td><td>${fmtEur(especie)}</td></tr>
+        <tr><td class="hint">Nota <span class="hi" data-tip="La especie no es dinero que cobres: solo incrementa la base para calcular el IRPF. El neto parte del sueldo tras restar la cuota de renting.">i</span></td><td>No dineraria</td></tr>
+        <tr class="emph-row"><td><strong>Neto disponible (según opción elegida)</strong></td><td><strong>${fmtEur(ingresoCuentaSel === 'norepercutido' ? netoFlex_B : netoFlex_A)}</strong></td></tr>
+      `;
+
+      if (ingresoCuentaSel === 'norepercutido') {
+        document.getElementById('tablaRentingDetalle').innerHTML =
+          `<tr><td>Bruto reducido (B − C)</td><td>${fmtEur(brutoReducido)}</td></tr>
+           <tr><td>Ingreso a cuenta (empresa)</td><td>${fmtEur(G)}</td></tr>
+           <tr><td>Base IRPF teórica = B − C + especie + G</td><td>${fmtEur(brutoReducido + especie + G)}</td></tr>
+           <tr><td>Retención total (tipo fijo)</td><td>${fmtEur(retTot)}</td></tr>
+           <tr><td>Retención desde nómina</td><td>− ${fmtEur(retTot - G)}</td></tr>
+           <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_B)}</strong></td></tr>`;
+      } else {
+        document.getElementById('tablaRentingDetalle').innerHTML =
+          `<tr><td>Bruto reducido (B − C)</td><td>${fmtEur(brutoReducido)}</td></tr>
+           <tr><td>Base IRPF = B − C + especie</td><td>${fmtEur(baseA)}</td></tr>
+           <tr><td>IRPF (flex)</td><td>− ${fmtEur(irpfA)}</td></tr>
+           <tr><td><strong>Neto disponible</strong></td><td><strong>${fmtEur(netoFlex_A)}</strong></td></tr>`;
+      }
     }
-    document.getElementById('addTramo').addEventListener('click', ()=>{
-      const tbody = document.querySelector('#tablaTramos tbody');
-      // Insertar antes del último
-      const rows = tbody.querySelectorAll('tr');
-      if(rows.length===0){ TAX_TABLE = JSON.parse(JSON.stringify(DEFAULT_TAX_TABLE)); renderTramos(); return; }
-      const last = rows[rows.length-1];
+
+    const netoRentingMostrar = (ingresoCuentaSel === 'norepercutido') ? netoFlex_B : netoFlex_A;
+    document.getElementById('kpiRenting').textContent = fmtEur(netoRentingMostrar);
+
+    // ===== Aside resumen
+    document.getElementById('rCompra').textContent = fmtEur(netoCompra);
+    document.getElementById('rEntDirRep').textContent   = fmtEur(netEntDirRep);
+    document.getElementById('rEntDirNoRep').textContent = fmtEur(netEntDirNoRep);
+    document.getElementById('rEntPosRep').textContent   = fmtEur(netEntPosRep);
+    document.getElementById('rEntPosNoRep').textContent = fmtEur(netEntPosNoRep);
+    document.getElementById('rFlexRep').textContent = fmtEur(netoFlex_A);
+    document.getElementById('rFlexNoRep').textContent = fmtEur(netoFlex_B);
+    paintDeltaCell(document.getElementById('dEntDirRep'),   netEntDirRep   - netoCompra);
+    paintDeltaCell(document.getElementById('dEntDirNoRep'), netEntDirNoRep - netoCompra);
+    paintDeltaCell(document.getElementById('dEntPosRep'),   netEntPosRep   - netoCompra);
+    paintDeltaCell(document.getElementById('dEntPosNoRep'), netEntPosNoRep - netoCompra);
+    paintDeltaCell(document.getElementById('dRep'),         netoFlex_A     - netoCompra);
+    paintDeltaCell(document.getElementById('dNoRep'),       netoFlex_B     - netoCompra);
+  }
+
+  /* ===== Eventos ===== */
+  const inputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex','costeAdq','aniosUso','vmEntrega','tEnt'];
+  inputs.forEach(id=>{
+    const el = document.getElementById(id); if(!el) return;
+    el.addEventListener('input', calc);
+    el.addEventListener('blur', ()=>{ formatInput(el); calc(); });
+    el.addEventListener('focus', ()=>{ unformatOnFocus(el); });
+  });
+  ['ecoRed','ingresoCuentaSel','ingresoEntregaSel','tipoEntrega','toggleTramos'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener('change', ()=>{
+      if(id==='tipoEntrega'){
+        document.getElementById('bloquePosterior').style.display = (el.value === 'posterior') ? '' : 'none';
+      }
+      if(id==='toggleTramos'){
+        const disabled = el.checked;
+        ['t','tFlex','tEnt'].forEach(i=>{
+          const x=document.getElementById(i);
+          if(x){ x.disabled=disabled; x.style.opacity = disabled ? 0.6 : 1; }
+        });
+      }
+      calc();
+    });
+  });
+
+  // Sync tipos fijos
+  const same = document.getElementById('sameAsMarginal');
+  const tInput = document.getElementById('t'); const tFlexInput = document.getElementById('tFlex');
+  same.addEventListener('change', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; formatInput(tFlexInput);} calc(); });
+  tInput.addEventListener('input', ()=>{ if(same.checked){ tFlexInput.value = tInput.value; calc(); } });
+
+  const sameEnt = document.getElementById('sameAsMarginalEnt');
+  const tEntInput = document.getElementById('tEnt');
+  sameEnt.addEventListener('change', ()=>{ if(sameEnt.checked){ tEntInput.value = tInput.value; formatInput(tEntInput);} calc(); });
+  tInput.addEventListener('input', ()=>{ if(sameEnt.checked){ tEntInput.value = tInput.value; calc(); } });
+
+  // Densidad compacta (si existe el control)
+  const dens = document.getElementById('toggleDensity');
+  if (dens) {
+    dens.addEventListener('change', (e)=> {
+      document.body.classList.toggle('compact', e.target.checked);
+    });
+    dens.checked = false;
+  }
+
+  /* ===== Modal: lógica (igual que antes) ===== */
+  const modal = document.getElementById('configModal');
+  const openBtn = document.getElementById('openConfig');
+  const closeBtn = document.getElementById('closeConfig');
+  openBtn.addEventListener('click', ()=>{ renderTramos(); renderEco(); modal.style.display='flex'; });
+  function closeModal(){ modal.style.display='none'; }
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && modal.style.display==='flex') closeModal(); });
+
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById(b.dataset.tab).classList.add('active');
+    });
+  });
+
+  function renderTramos(){
+    const tbody = document.querySelector('#tablaTramos tbody');
+    tbody.innerHTML='';
+    const temp = TAX_TABLE.map(([limit, rate])=>[limit, Math.round(rate*10000)/100]);
+    temp.forEach(([limit, pct], idx)=>{
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><input type="text" data-role="limit" value="50.000" /></td>
-        <td><input type="text" data-role="rate" value="30" /></td>
-        <td class="row-actions"><button type="button" data-action="del">Eliminar</button></td>`;
-      tbody.insertBefore(tr, last);
+        <td>${isFinite(limit)
+            ? `<input type="text" data-role="limit" value="${new Intl.NumberFormat('es-ES').format(limit)}" />`
+            : `<input type="text" data-role="limit" value="En adelante" disabled />`}</td>
+        <td><input type="text" data-role="rate" value="${String(pct).replace('.',',')}" /></td>
+        <td class="row-actions">
+          ${idx < temp.length-1 ? '<button type="button" data-action="del">Eliminar</button>' : '<span class="help">último</span>'}
+        </td>`;
+      tbody.appendChild(tr);
     });
-    document.querySelector('#tablaTramos tbody').addEventListener('click', (e)=>{
-      if(e.target.dataset.action==='del'){
-        e.target.closest('tr').remove();
+  }
+  document.getElementById('addTramo').addEventListener('click', ()=>{
+    const tbody = document.querySelector('#tablaTramos tbody');
+    const rows = tbody.querySelectorAll('tr');
+    if(rows.length===0){ TAX_TABLE = JSON.parse(JSON.stringify(DEFAULT_TAX_TABLE)); renderTramos(); return; }
+    const last = rows[rows.length-1];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" data-role="limit" value="50.000" /></td>
+      <td><input type="text" data-role="rate" value="30" /></td>
+      <td class="row-actions"><button type="button" data-action="del">Eliminar</button></td>`;
+    tbody.insertBefore(tr, last);
+  });
+  document.querySelector('#tablaTramos tbody').addEventListener('click', (e)=>{
+    if(e.target.dataset.action==='del'){
+      e.target.closest('tr').remove();
+    }
+  });
+
+  function readTramosFromUI(){
+    const rows = Array.from(document.querySelectorAll('#tablaTramos tbody tr'));
+    if(rows.length===0) return null;
+    const parsed=[];
+    for(let i=0;i<rows.length;i++){
+      const limitInput = rows[i].querySelector('input[data-role="limit"]');
+      const rateInput  = rows[i].querySelector('input[data-role="rate"]');
+      let limitText = limitInput.value.trim();
+      const isLast = (i === rows.length-1);
+      const limit = isLast || /en\s+adelante/i.test(limitText) ? Infinity : parseLocaleNumber(limitText);
+      const rate  = (String(rateInput.value).replace(',','.').trim()==='' ? NaN : Number(String(rateInput.value).replace(',','.')));
+      if(!isLast && (!isFinite(limit) || limit<=0)) return {error:'Límites inválidos en tramos.'};
+      if(!(rate>=0 && rate<=100)) return {error:'Tipos fuera de rango (0–100%).'};
+      parsed.push([limit, rate/100]);
+    }
+    for(let i=1;i<parsed.length;i++){
+      if(isFinite(parsed[i-1][0]) && isFinite(parsed[i][0]) && parsed[i][0] <= parsed[i-1][0]){
+        return {error:'Los límites deben ir en orden ascendente.'};
       }
+    }
+    if(parsed[parsed.length-1][0] !== Infinity) parsed[parsed.length-1][0] = Infinity;
+    return {data:parsed};
+  }
+
+  function renderEco(){
+    const tbody = document.querySelector('#tablaEco tbody');
+    tbody.innerHTML='';
+    ECO_PRESETS.forEach((p,idx)=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="checkbox" data-role="on" ${p.enabled?'checked':''} /></td>
+        <td><input type="text" data-role="label" value="${p.label.replace(/"/g,'&quot;')}" /></td>
+        <td><input type="text" data-role="value" value="${String(p.value*100).replace('.',',')}" /></td>
+        <td class="row-actions"><button type="button" data-action="delEco" ${ECO_PRESETS.length<=1?'disabled':''}>Eliminar</button></td>`;
+      tbody.appendChild(tr);
     });
-
-    // Guardar tramos
-    function readTramosFromUI(){
-      const rows = Array.from(document.querySelectorAll('#tablaTramos tbody tr'));
-      if(rows.length===0) return null;
-      const parsed=[];
-      for(let i=0;i<rows.length;i++){
-        const limitInput = rows[i].querySelector('input[data-role="limit"]');
-        const rateInput  = rows[i].querySelector('input[data-role="rate"]');
-        let limitText = limitInput.value.trim();
-        const isLast = (i === rows.length-1);
-        const limit = isLast || /en\s+adelante/i.test(limitText) ? Infinity : parseLocaleNumber(limitText);
-        const rate  = (String(rateInput.value).replace(',','.').trim()==='' ? NaN : Number(String(rateInput.value).replace(',','.')));
-        if(!isLast && (!isFinite(limit) || limit<=0)) return {error:'Límites inválidos en tramos.'};
-        if(!(rate>=0 && rate<=100)) return {error:'Tipos fuera de rango (0–100%).'};
-        parsed.push([limit, rate/100]);
-      }
-      // validar orden ascendente de límites finitos
-      for(let i=1;i<parsed.length;i++){
-        if(isFinite(parsed[i-1][0]) && isFinite(parsed[i][0]) && parsed[i][0] <= parsed[i-1][0]){
-          return {error:'Los límites deben ir en orden ascendente.'};
-        }
-      }
-      if(parsed[parsed.length-1][0] !== Infinity) parsed[parsed.length-1][0] = Infinity;
-      return {data:parsed};
-    }
-
-    /* ===== Eco presets ===== */
-    function renderEco(){
-      const tbody = document.querySelector('#tablaEco tbody');
-      tbody.innerHTML='';
-      ECO_PRESETS.forEach((p,idx)=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML = `
-          <td><input type="checkbox" data-role="on" ${p.enabled?'checked':''} /></td>
-          <td><input type="text" data-role="label" value="${p.label.replace(/"/g,'&quot;')}" /></td>
-          <td><input type="text" data-role="value" value="${String(p.value*100).replace('.',',')}" /></td>
-          <td class="row-actions"><button type="button" data-action="delEco" ${ECO_PRESETS.length<=1?'disabled':''}>Eliminar</button></td>`;
-        tbody.appendChild(tr);
-      });
-    }
-    document.getElementById('addEco').addEventListener('click', ()=>{
-      ECO_PRESETS.push({enabled:true,label:'Nuevo preset',value:0.10});
+  }
+  document.getElementById('addEco').addEventListener('click', ()=>{
+    ECO_PRESETS.push({enabled:true,label:'Nuevo preset',value:0.10});
+    renderEco();
+  });
+  document.querySelector('#tablaEco tbody').addEventListener('click', (e)=>{
+    if(e.target.dataset.action==='delEco'){
+      const idx = Array.from(e.currentTarget.children).indexOf(e.target.closest('tr'));
+      ECO_PRESETS.splice(idx,1);
       renderEco();
-    });
-    document.querySelector('#tablaEco tbody').addEventListener('click', (e)=>{
-      if(e.target.dataset.action==='delEco'){
-        const idx = Array.from(e.currentTarget.children).indexOf(e.target.closest('tr'));
-        ECO_PRESETS.splice(idx,1);
-        renderEco();
-      }
-    });
-    function readEcoFromUI(){
-      const rows = Array.from(document.querySelectorAll('#tablaEco tbody tr'));
-      const res=[];
-      for(const tr of rows){
-        const on = tr.querySelector('input[data-role="on"]').checked;
-        const label = tr.querySelector('input[data-role="label"]').value.trim() || 'Preset';
-        const valPct = String(tr.querySelector('input[data-role="value"]').value).replace(',','.').trim();
-        const v = Number(valPct);
-        if(!(v>=0 && v<=90)) return {error:'Reducción eco fuera de rango (0–90%).'};
-        res.push({enabled:on,label,value:v/100});
-      }
-      if(res.length===0) return {error:'Debe existir al menos un preset.'};
-      return {data:res};
     }
+  });
+  function readEcoFromUI(){
+    const rows = Array.from(document.querySelectorAll('#tablaEco tbody tr'));
+    const res=[];
+    for(const tr of rows){
+      const on = tr.querySelector('input[data-role="on"]').checked;
+      const label = tr.querySelector('input[data-role="label"]').value.trim() || 'Preset';
+      const valPct = String(tr.querySelector('input[data-role="value"]').value).replace(',','.').trim();
+      const v = Number(valPct);
+      if(!(v>=0 && v<=90)) return {error:'Reducción eco fuera de rango (0–90%).'};
+      res.push({enabled:on,label,value:v/100});
+    }
+    if(res.length===0) return {error:'Debe existir al menos un preset.'};
+    return {data:res};
+  }
 
-    // Botones modal
-    document.getElementById('resetConfig').addEventListener('click', ()=>{
-      TAX_TABLE = JSON.parse(JSON.stringify(DEFAULT_TAX_TABLE));
-      ECO_PRESETS = JSON.parse(JSON.stringify(DEFAULT_ECO));
-      renderTramos(); renderEco(); populateEcoSelect(); calc();
-    });
-    document.getElementById('saveConfig').addEventListener('click', ()=>{
-      const tramos = readTramosFromUI();
-      if(tramos && tramos.error){ alert(tramos.error); return; }
-      const eco = readEcoFromUI();
-      if(eco && eco.error){ alert(eco.error); return; }
-      if(tramos && tramos.data) TAX_TABLE = tramos.data;
-      if(eco && eco.data) ECO_PRESETS = eco.data;
-      populateEcoSelect();
-      calc();
-      closeModal();
-    });
-
-    // Tabs click handler already set; now initial UI
-    document.getElementById('toggleDensity').checked = false;
-    document.getElementById('toggleTramos').checked = false;
-    ['t','tFlex','tEnt'].forEach(id=>{ const x=document.getElementById(id); if(x){ x.disabled=false; x.style.opacity=1; } });
-
-    // Inicialización de inputs y select eco
-    const initInputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex','costeAdq','aniosUso','vmEntrega','tEnt'];
-    initInputs.forEach(id=>{ const el=document.getElementById(id); if(el) formatInput(el); });
-    document.getElementById('bloquePosterior').style.display = (document.getElementById('tipoEntrega').value === 'posterior') ? '' : 'none';
+  // Botones modal
+  document.getElementById('resetConfig').addEventListener('click', ()=>{
+    TAX_TABLE = JSON.parse(JSON.stringify(DEFAULT_TAX_TABLE));
+    ECO_PRESETS = JSON.parse(JSON.stringify(DEFAULT_ECO));
+    renderTramos(); renderEco(); populateEcoSelect(); calc();
+  });
+  document.getElementById('saveConfig').addEventListener('click', ()=>{
+    const tramos = readTramosFromUI();
+    if(tramos && tramos.error){ alert(tramos.error); return; }
+    const eco = readEcoFromUI();
+    if(eco && eco.error){ alert(eco.error); return; }
+    if(tramos && tramos.data) TAX_TABLE = tramos.data;
+    if(eco && eco.data) ECO_PRESETS = eco.data;
     populateEcoSelect();
     calc();
-  </script>
+    closeModal();
+  });
+
+  // Estado inicial
+  const densBox = document.getElementById('toggleDensity');
+  if (densBox) densBox.checked = false;
+  document.getElementById('toggleTramos').checked = false;
+  ['t','tFlex','tEnt'].forEach(id=>{ const x=document.getElementById(id); if(x){ x.disabled=false; x.style.opacity=1; } });
+
+  const initInputs = ['B','t','costeCompraMensual','Cmensual','p','V','tFlex','costeAdq','aniosUso','vmEntrega','tEnt'];
+  initInputs.forEach(id=>{ const el=document.getElementById(id); if(el) formatInput(el); });
+  document.getElementById('bloquePosterior').style.display = (document.getElementById('tipoEntrega').value === 'posterior') ? '' : 'none';
+  populateEcoSelect();
+  calc();
+</script>
+
+
+
 </body>
 </html>
