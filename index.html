@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -280,21 +280,28 @@
       <aside class="aside-sticky">
         <div class="card">
           <h3 class="t-title">Resultado</h3>
+          
+          <label for="tipoResultado" style="margin-top:8px">Mostrar resultados</label>
+          <select id="tipoResultado" style="margin-bottom:12px">
+            <option value="repercutido">Repercutidos</option>
+            <option value="norepercutido">No repercutidos</option>
+          </select>
+
           <table class="table-compact" style="margin-top:4px">
             <tbody id="tablaResumen">
-              <tr><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
-              <tr><td>Entrega directa (ingreso repercutido)</td><td style="text-align:right" id="rEntDirRep">—</td></tr>
-              <tr><td>Entrega directa (ingreso no repercutido)</td><td style="text-align:right" id="rEntDirNoRep">—</td></tr>
-              <tr><td>Entrega posterior (ingreso repercutido)</td><td style="text-align:right" id="rEntPosRep">—</td></tr>
-              <tr><td>Entrega posterior (ingreso no repercutido)</td><td style="text-align:right" id="rEntPosNoRep">—</td></tr>
-              <tr><td>Renting flex (ingreso repercutido)</td><td style="text-align:right" id="rFlexRep">—</td></tr>
-              <tr><td>Renting flex (ingreso no repercutido)</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
-              <tr class="emph-row"><td>Diferencia vs compra · Entrega directa (repercutido)</td><td style="text-align:right" id="dEntDirRep">—</td></tr>
-              <tr class="emph-row"><td>Diferencia vs compra · Entrega directa (no repercutido)</td><td style="text-align:right" id="dEntDirNoRep">—</td></tr>
-              <tr class="emph-row"><td>Diferencia vs compra · Entrega posterior (repercutido)</td><td style="text-align:right" id="dEntPosRep">—</td></tr>
-              <tr class="emph-row"><td>Diferencia vs compra · Entrega posterior (no repercutido)</td><td style="text-align:right" id="dEntPosNoRep">—</td></tr>
-              <tr class="emph-row"><td>Diferencia vs compra · Renting (repercutido)</td><td style="text-align:right" id="dRep">—</td></tr>
-              <tr class="emph-row"><td>Diferencia vs compra · Renting (no repercutido)</td><td style="text-align:right" id="dNoRep">—</td></tr>
+              <tr data-row-type="compra"><td>Compra por su cuenta</td><td style="text-align:right" id="rCompra">—</td></tr>
+              <tr data-row-type="repercutido"><td>Entrega directa</td><td style="text-align:right" id="rEntDirRep">—</td></tr>
+              <tr data-row-type="norepercutido" style="display:none;"><td>Entrega directa</td><td style="text-align:right" id="rEntDirNoRep">—</td></tr>
+              <tr data-row-type="repercutido"><td>Entrega posterior</td><td style="text-align:right" id="rEntPosRep">—</td></tr>
+              <tr data-row-type="norepercutido" style="display:none;"><td>Entrega posterior</td><td style="text-align:right" id="rEntPosNoRep">—</td></tr>
+              <tr data-row-type="repercutido"><td>Renting flex</td><td style="text-align:right" id="rFlexRep">—</td></tr>
+              <tr data-row-type="norepercutido" style="display:none;"><td>Renting flex</td><td style="text-align:right" id="rFlexNoRep">—</td></tr>
+              <tr class="emph-row" data-row-type="repercutido"><td>Diferencia vs compra · Entrega directa</td><td style="text-align:right" id="dEntDirRep">—</td></tr>
+              <tr class="emph-row" data-row-type="norepercutido" style="display:none;"><td>Diferencia vs compra · Entrega directa</td><td style="text-align:right" id="dEntDirNoRep">—</td></tr>
+              <tr class="emph-row" data-row-type="repercutido"><td>Diferencia vs compra · Entrega posterior</td><td style="text-align:right" id="dEntPosRep">—</td></tr>
+              <tr class="emph-row" data-row-type="norepercutido" style="display:none;"><td>Diferencia vs compra · Entrega posterior</td><td style="text-align:right" id="dEntPosNoRep">—</td></tr>
+              <tr class="emph-row" data-row-type="repercutido"><td>Diferencia vs compra · Renting</td><td style="text-align:right" id="dRep">—</td></tr>
+              <tr class="emph-row" data-row-type="norepercutido" style="display:none;"><td>Diferencia vs compra · Renting</td><td style="text-align:right" id="dNoRep">—</td></tr>
             </tbody>
           </table>
 
@@ -404,6 +411,24 @@
     td.classList.remove('good','bad','neu');
     if(value>0) td.classList.add('good'); else if(value<0) td.classList.add('bad'); else td.classList.add('neu');
     td.textContent = (value>=0?'+':'') + fmtEur(value);
+  }
+
+  // ===== Filtro resumen (repercutidos / no repercutidos) =====
+  function filterResumen(){
+    const sel = document.getElementById('tipoResultado');
+    if(!sel) return;
+    const mode = sel.value; // 'repercutido' | 'norepercutido'
+    const rows = document.querySelectorAll('#tablaResumen tr');
+    rows.forEach(tr => {
+      const t = tr.getAttribute('data-row-type');
+      if (t === 'compra' || t === mode) {
+        tr.style.display = '';
+      } else if (t === 'repercutido' || t === 'norepercutido') {
+        tr.style.display = 'none';
+      } else {
+        tr.style.display = '';
+      }
+    });
   }
 
   /* ===== Config editable ===== */
@@ -725,6 +750,8 @@ if (ingresoEntregaSel === 'norepercutido') {
     paintDeltaCell(document.getElementById('dEntPosNoRep'), netEntPosNoRep - netoCompra);
     paintDeltaCell(document.getElementById('dRep'),         netoFlex_A     - netoCompra);
     paintDeltaCell(document.getElementById('dNoRep'),       netoFlex_B     - netoCompra);
+    // Aplicar filtro visual tras actualizar valores
+    filterResumen();
   }
 
   /* ===== Eventos ===== */
@@ -751,6 +778,12 @@ if (ingresoEntregaSel === 'norepercutido') {
       calc();
     });
   });
+
+  // Listener específico del filtro de resultados
+  const tipoResultadoSel = document.getElementById('tipoResultado');
+  if (tipoResultadoSel) {
+    tipoResultadoSel.addEventListener('change', filterResumen);
+  }
 
   // Sync tipos fijos
   const same = document.getElementById('sameAsMarginal');
